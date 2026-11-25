@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Задачи по МКТ</title>
+<style>
+  /* Цвета для светлой темы */
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #5d6676;
+    --line: #dfe3ea; --accent: #2f6fdf; --accent-text: #ffffff;
+    --ok: #1f8a4c; --ok-bg: #e6f5ec; --bad: #c0392b; --bad-bg: #fbeaea;
+    --hint-bg: #fff6df; --sol-bg: #eef3fc;
+  }
+  /* Цвета для тёмной темы телефона */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b; --card: #1b2029; --text: #e6e9ef; --muted: #9aa3b2;
+      --line: #2c3340; --accent: #5b8ff0; --accent-text: #0e1116;
+      --ok: #4cc283; --ok-bg: #173226; --bad: #f07a6e; --bad-bg: #3a1f1d;
+      --hint-bg: #352d17; --sol-bg: #1d2a40;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.5rem; margin: 8px 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  .progress { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 8px 0; }
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .bar > div { height: 100%; width: 0; background: var(--ok); transition: width .3s; }
+  .progress-text { font-size: .9rem; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between; }
+  .progress-text button { background: none; border: 0; color: var(--accent); font: inherit; padding: 0; cursor: pointer; }
+  details.sheet, .task {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px; margin: 12px 0;
+  }
+  details.sheet summary { font-weight: 600; cursor: pointer; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; margin-top: 10px; }
+  td { padding: 6px 4px; border-top: 1px solid var(--line); vertical-align: top; }
+  td:nth-child(2) { white-space: nowrap; font-weight: 600; }
+  .rules { font-size: .92rem; margin: 10px 0 0; padding-left: 20px; }
+  .task.solved { border-color: var(--ok); }
+  .task h2 { font-size: 1.05rem; margin: 0 0 6px; display: flex; justify-content: space-between; gap: 8px; }
+  .badge { font-size: .8rem; font-weight: 600; color: var(--ok); white-space: nowrap; }
+  .cond { margin: 0 0 10px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row input {
+    flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text);
+  }
+  .unit { color: var(--muted); white-space: nowrap; }
+  .fmt { font-size: .82rem; color: var(--muted); margin: 4px 0 10px; }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btns button {
+    font: inherit; font-size: .95rem; padding: 9px 14px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--card); color: var(--text);
+  }
+  .btns button.main { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .msg { margin-top: 10px; padding: 8px 12px; border-radius: 8px; display: none; }
+  .msg.ok { display: block; background: var(--ok-bg); color: var(--ok); }
+  .msg.bad { display: block; background: var(--bad-bg); color: var(--bad); }
+  .hint, .sol { margin-top: 10px; padding: 10px 12px; border-radius: 8px; display: none; }
+  .hint { background: var(--hint-bg); }
+  .sol { background: var(--sol-bg); }
+  .hint.show, .sol.show { display: block; }
+  .sol p { margin: 4px 0; }
+  footer { color: var(--muted); font-size: .85rem; text-align: center; margin: 24px 0 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Задачи по МКТ</h1>
+  <p class="sub">Молекулярно-кинетическая теория, 10 класс. Реши, впиши ответ и нажми «Проверить».</p>
+
+  <div class="progress">
+    <div class="bar"><div id="barFill"></div></div>
+    <div class="progress-text"><span id="progressText">Решено 0 из 8</span><button id="reset" type="button">Сбросить</button></div>
+  </div>
+
+  <details class="sheet">
+    <summary>Шпаргалка формул</summary>
+    <table>
+      <tr><td>Количество вещества</td><td>ν = m / M = N / Nₐ</td></tr>
+      <tr><td>Масса одной молекулы</td><td>m₀ = M / Nₐ</td></tr>
+      <tr><td>Средняя кинетическая энергия</td><td>E = 3/2 · kT</td></tr>
+      <tr><td>Среднеквадратичная скорость</td><td>v = √(3RT / M)</td></tr>
+      <tr><td>Основное уравнение МКТ</td><td>p = 2/3 · nE = nkT</td></tr>
+      <tr><td>Менделеев–Клапейрон</td><td>pV = (m/M) · RT</td></tr>
+      <tr><td>Изохора (V = const)</td><td>p₁/T₁ = p₂/T₂</td></tr>
+      <tr><td>Изотерма (T = const)</td><td>p₁V₁ = p₂V₂</td></tr>
+    </table>
+    <p class="fmt">Nₐ = 6,02·10²³ моль⁻¹, k = 1,38·10⁻²³ Дж/К, R = 8,31 Дж/(моль·К)</p>
+    <ul class="rules">
+      <li>Температура всегда в кельвинах: T = t + 273.</li>
+      <li>Всё в СИ: г → кг, л → м³ (1 л = 0,001 м³), г/моль → кг/моль.</li>
+    </ul>
+  </details>
+
+  <div id="tasks"></div>
+
+  <footer>Ответ засчитывается, если он отличается от точного не больше чем на 3%.</footer>
+</main>
+
+<script>
+// Список задач: условие, правильный ответ, единицы, подсказка и решение
+const TASKS = [
+  {
+    title: "Число молекул",
+    cond: "Сколько молекул содержится в 36 г воды (H₂O)?",
+    answer: 1.204e24, unit: "молекул",
+    hint: "Сначала найди молярную массу воды (H = 1, O = 16) и количество вещества ν = m / M. Потом умножь на Nₐ.",
+    sol: ["M(H₂O) = 2·1 + 16 = 18 г/моль", "ν = m / M = 36 / 18 = 2 моль", "N = ν·Nₐ = 2 · 6,02·10²³ ≈ <b>1,2·10²⁴</b>", "Граммы можно не переводить: они сокращаются с г/моль."]
+  },
+  {
+    title: "Масса одной молекулы",
+    cond: "Найди массу одной молекулы кислорода O₂.",
+    answer: 5.316e-26, unit: "кг",
+    hint: "Масса одного моля, делённая на число молекул в моле. Не забудь перевести г/моль в кг/моль.",
+    sol: ["M(O₂) = 32 г/моль = 0,032 кг/моль", "m₀ = M / Nₐ = 0,032 / 6,02·10²³ ≈ <b>5,3·10⁻²⁶ кг</b>"]
+  },
+  {
+    title: "Энергия молекул",
+    cond: "Чему равна средняя кинетическая энергия поступательного движения молекулы газа при 27 °C?",
+    answer: 6.21e-21, unit: "Дж",
+    hint: "E = 3/2 · kT. Переведи температуру в кельвины.",
+    sol: ["T = 27 + 273 = 300 К", "E = 1,5 · 1,38·10⁻²³ · 300 ≈ <b>6,2·10⁻²¹ Дж</b>", "Эта энергия зависит только от температуры, а не от вида газа."]
+  },
+  {
+    title: "Скорость молекул",
+    cond: "Найди среднеквадратичную скорость молекул азота N₂ при 0 °C.",
+    answer: 493, unit: "м/с",
+    hint: "v = √(3RT / M). M(N₂) = 28 г/моль, переведи в кг/моль.",
+    sol: ["T = 273 К, M = 0,028 кг/моль", "v = √(3 · 8,31 · 273 / 0,028) = √243 000 ≈ <b>493 м/с</b>", "Это около 1800 км/ч."]
+  },
+  {
+    title: "Основное уравнение МКТ",
+    cond: "Концентрация молекул газа n = 2,7·10²⁵ м⁻³, температура 27 °C. Найди давление газа.",
+    answer: 1.118e5, unit: "Па",
+    hint: "p = nkT. Температуру в кельвины.",
+    sol: ["T = 300 К", "p = nkT = 2,7·10²⁵ · 1,38·10⁻²³ · 300 ≈ <b>1,1·10⁵ Па</b>", "Это почти атмосферное давление."]
+  },
+  {
+    title: "Менделеев–Клапейрон",
+    cond: "В баллоне объёмом 20 л находится кислород под давлением 1,5 МПа при 27 °C. Найди массу кислорода.",
+    answer: 0.385, unit: "кг",
+    hint: "Из pV = (m/M)·RT выразим m = pVM / (RT). V = 0,02 м³, p = 1,5·10⁶ Па, M = 0,032 кг/моль.",
+    sol: ["m = pVM / (RT)", "m = 1,5·10⁶ · 0,02 · 0,032 / (8,31 · 300) = 960 / 2493 ≈ <b>0,385 кг</b> (385 г)"]
+  },
+  {
+    title: "Изохорный процесс",
+    cond: "Газ в закрытом баллоне нагрели с 27 °C до 127 °C. Начальное давление 100 кПа. Каким стало давление?",
+    answer: 133.3, unit: "кПа",
+    hint: "Объём не меняется, значит p₁/T₁ = p₂/T₂. Температуры обязательно в кельвинах.",
+    sol: ["T₁ = 300 К, T₂ = 400 К", "p₂ = p₁ · T₂ / T₁ = 100 · 400 / 300 ≈ <b>133 кПа</b>", "Ловушка: с градусами Цельсия вышло бы 470 кПа, это неверно."]
+  },
+  {
+    title: "Изотермический процесс",
+    cond: "Газ медленно сжали с 6 л до 2 л при постоянной температуре. Начальное давление 100 кПа. Каким стало давление?",
+    answer: 300, unit: "кПа",
+    hint: "Температура не меняется, значит p₁V₁ = p₂V₂. Литры здесь можно не переводить: они сокращаются.",
+    sol: ["p₂ = p₁ · V₁ / V₂ = 100 · 6 / 2 = <b>300 кПа</b>", "Объём уменьшили в 3 раза, давление выросло в 3 раза."]
+  }
+];
+
+// Превращает ввод вроде «5,3·10^-26», «5.3*10-26», «5,3e-26» в число
+function parseAnswer(raw) {
+  let s = raw.trim().replace(/\s+/g, "").replace(/,/g, ".")
+    .replace(/[−–]/g, "-")
+    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, c => "0123456789-"["⁰¹²³⁴⁵⁶⁷⁸⁹⁻".indexOf(c)]);
+  // «·10^-26», «*10-26», «x10^24» → «e-26»
+  s = s.replace(/[·*×x]10\^?\(?([+-]?\d+)\)?$/i, "e$1");
+  if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return NaN;
+  return parseFloat(s);
+}
+
+// Сохранение прогресса в браузере (если браузер не даёт, просто работаем без него)
+const KEY = "mkt-solved";
+function loadSolved() {
+  try { return new Set(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch (e) { return new Set(); }
+}
+function saveSolved() {
+  try { localStorage.setItem(KEY, JSON.stringify([...solved])); } catch (e) {}
+}
+const solved = loadSolved();
+
+function updateProgress() {
+  document.getElementById("barFill").style.width = (solved.size / TASKS.length * 100) + "%";
+  document.getElementById("progressText").textContent =
+    solved.size === TASKS.length ? "Все 8 задач решены!" : "Решено " + solved.size + " из " + TASKS.length;
+}
+
+// Рисуем карточки задач
+const box = document.getElementById("tasks");
+TASKS.forEach((t, i) => {
+  const el = document.createElement("section");
+  el.className = "task" + (solved.has(i) ? " solved" : "");
+  el.innerHTML = `
+    <h2><span>${i + 1}. ${t.title}</span><span class="badge">${solved.has(i) ? "Решено" : ""}</span></h2>
+    <p class="cond">${t.cond}</p>
+    <div class="row">
+      <input type="text" inputmode="text" autocomplete="off" placeholder="Твой ответ">
+      <span class="unit">${t.unit}</span>
+    </div>
+    <p class="fmt">Можно писать так: 5,3e-26 или 5,3·10^-26</p>
+    <div class="btns">
+      <button type="button" class="main" data-a="check">Проверить</button>
+      <button type="button" data-a="hint">Подсказка</button>
+      <button type="button" data-a="sol">Решение</button>
+    </div>
+    <div class="msg"></div>
+    <div class="hint">${t.hint}</div>
+    <div class="sol">${t.sol.map(p => "<p>" + p + "</p>").join("")}</div>`;
+  const input = el.querySelector("input");
+  const msg = el.querySelector(".msg");
+
+  function check() {
+    const v = parseAnswer(input.value);
+    if (isNaN(v)) {
+      msg.className = "msg bad";
+      msg.textContent = "Не понял число. Пример записи: 5,3e-26";
+      return;
+    }
+    const diff = Math.abs(v - t.answer) / Math.abs(t.answer);
+    if (diff <= 0.03) {
+      msg.className = "msg ok";
+      msg.textContent = "Верно!";
+      solved.add(i); saveSolved();
+      el.classList.add("solved");
+      el.querySelector(".badge").textContent = "Решено";
+      updateProgress();
+    } else {
+      msg.className = "msg bad";
+      // Подсказываем, если ошибка в степени десятки (частая ошибка с единицами)
+      const ratio = Math.log10(Math.abs(v / t.answer));
+      msg.textContent = Math.abs(ratio - Math.round(ratio)) < 0.02 && Math.round(ratio) !== 0
+        ? "Почти: цифры верные, но ошибка в степени десяти. Проверь перевод единиц."
+        : "Пока неверно. Попробуй ещё или открой подсказку.";
+    }
+  }
+
+  el.querySelector('[data-a="check"]').onclick = check;
+  input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+  el.querySelector('[data-a="hint"]').onclick = () => el.querySelector(".hint").classList.toggle("show");
+  el.querySelector('[data-a="sol"]').onclick = () => el.querySelector(".sol").classList.toggle("show");
+  box.appendChild(el);
+});
+
+document.getElementById("reset").onclick = () => {
+  solved.clear(); saveSolved();
+  location.reload();
+};
+
+updateProgress();
+</script>
+</body>
+</html>
