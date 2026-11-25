@@ -68,6 +68,16 @@
   .sol { background: var(--sol-bg); }
   .hint.show, .sol.show { display: block; }
   .sol p { margin: 4px 0; }
+  /* Графики и задачи с вариантами ответа */
+  .graph { margin: 0 0 10px; color: var(--text); }
+  .graph svg { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto; }
+  .opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .opts button {
+    font: inherit; text-align: left; padding: 10px 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text);
+  }
+  .opts button.right { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
+  .opts button.wrong { border-color: var(--bad); background: var(--bad-bg); color: var(--bad); }
   footer { color: var(--muted); font-size: .85rem; text-align: center; margin: 24px 0 8px; }
 </style>
 </head>
@@ -92,6 +102,7 @@
       <tr><td>Менделеев–Клапейрон</td><td>pV = (m/M) · RT</td></tr>
       <tr><td>Изохора (V = const)</td><td>p₁/T₁ = p₂/T₂</td></tr>
       <tr><td>Изотерма (T = const)</td><td>p₁V₁ = p₂V₂</td></tr>
+      <tr><td>Изобара (p = const)</td><td>V₁/T₁ = V₂/T₂</td></tr>
     </table>
     <p class="fmt">Nₐ = 6,02·10²³ моль⁻¹, k = 1,38·10⁻²³ Дж/К, R = 8,31 Дж/(моль·К)</p>
     <ul class="rules">
@@ -163,8 +174,92 @@ const TASKS = [
     answer: 300, unit: "кПа",
     hint: "Температура не меняется, значит p₁V₁ = p₂V₂. Литры здесь можно не переводить: они сокращаются.",
     sol: ["p₂ = p₁ · V₁ / V₂ = 100 · 6 / 2 = <b>300 кПа</b>", "Объём уменьшили в 3 раза, давление выросло в 3 раза."]
+  },
+  {
+    title: "Изобарный процесс",
+    cond: "Газ при 27 °C занимает объём 3 л. Его нагрели при постоянном давлении до 127 °C. Каким стал объём?",
+    answer: 4, unit: "л",
+    hint: "Давление не меняется, значит V₁/T₁ = V₂/T₂. Температуры в кельвинах, литры можно оставить.",
+    sol: ["T₁ = 300 К, T₂ = 400 К", "V₂ = V₁ · T₂ / T₁ = 3 · 400 / 300 = <b>4 л</b>", "Газ при нагреве расширяется: как воздушный шарик, который вынесли с мороза в тёплую комнату."]
+  },
+  {
+    title: "Изобарный процесс: температура",
+    cond: "При постоянном давлении объём газа увеличился в 1,5 раза. Начальная температура 7 °C. Какой стала температура (в кельвинах)?",
+    answer: 420, unit: "К",
+    hint: "V₂/V₁ = T₂/T₁. Значит, температура в кельвинах тоже выросла в 1,5 раза.",
+    sol: ["T₁ = 7 + 273 = 280 К", "T₂ = T₁ · V₂ / V₁ = 280 · 1,5 = <b>420 К</b> (это 147 °C)", "Ловушка: 7 °C · 1,5 = 10,5 °C — неверно, умножать можно только кельвины."]
+  },
+  {
+    title: "График: какой процесс?",
+    cond: "На графике показана зависимость давления газа от температуры. Масса газа не меняется. Какой это процесс?",
+    graph: "pT",
+    options: ["Изотермический (T = const)", "Изобарный (p = const)", "Изохорный (V = const)"],
+    correct: 2,
+    hint: "Прямая на графике p(T) идёт в начало координат. Значит, p/T не меняется. В какой формуле p делится на T?",
+    sol: ["Прямая через начало координат означает p ~ T, то есть p/T = const.", "Это закон Шарля: <b>изохорный процесс</b>, объём не меняется.", "Пунктир у нуля: так близко к абсолютному нулю газ уже не ведёт себя как идеальный, поэтому эту часть рисуют пунктиром."]
+  },
+  {
+    title: "График: какой процесс?",
+    cond: "На графике показана зависимость давления газа от объёма. Масса газа не меняется. Какой это процесс?",
+    graph: "pV",
+    options: ["Изотермический (T = const)", "Изобарный (p = const)", "Изохорный (V = const)"],
+    correct: 0,
+    hint: "Это не прямая, а кривая: чем больше объём, тем меньше давление. Где произведение p·V постоянно?",
+    sol: ["Кривая называется гиперболой: p·V = const.", "Это закон Бойля–Мариотта: <b>изотермический процесс</b>, температура не меняется.", "Изобара на этом графике была бы горизонтальной линией, а изохора — вертикальной."]
+  },
+  {
+    title: "График: найди объём",
+    cond: "На графике показана зависимость объёма газа от температуры при постоянном давлении. В точке A: T = 300 К, V = 2 л. Найди объём газа в точке B.",
+    graph: "VT",
+    answer: 3, unit: "л",
+    hint: "Прямая через начало координат: V ~ T. Посмотри по графику температуру в точке B и примени V₁/T₁ = V₂/T₂.",
+    sol: ["По графику T_B = 450 К.", "V_B = V_A · T_B / T_A = 2 · 450 / 300 = <b>3 л</b>", "Температура выросла в 1,5 раза, и объём вырос в 1,5 раза."]
   }
 ];
+
+// Рисунки графиков (SVG). Цвет берётся из темы страницы через currentColor
+function axes(xLabel, yLabel) {
+  return `
+    <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+    <line x1="30" y1="150" x2="245" y2="150" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="30" y1="150" x2="30" y2="12" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="258" y="168" font-size="13" fill="currentColor" text-anchor="end">${xLabel}</text>
+    <text x="38" y="20" font-size="13" fill="currentColor">${yLabel}</text>
+    <text x="20" y="165" font-size="12" fill="currentColor">0</text>`;
+}
+const LINE = 'stroke="#2f6fdf" stroke-width="3" fill="none"';
+function dot(x, y, label, dx = 8, dy = -8) {
+  return `<circle cx="${x}" cy="${y}" r="4.5" fill="#2f6fdf"/>
+    <text x="${x + dx}" y="${y + dy}" font-size="13" font-weight="600" fill="currentColor">${label}</text>`;
+}
+const GRAPHS = {
+  // Изохора в осях p–T: прямая через начало координат
+  pT: () => axes("T", "p") +
+    `<line x1="30" y1="150" x2="80" y2="121" ${LINE} stroke-dasharray="5 5" stroke-width="2"/>
+     <line x1="80" y1="121" x2="215" y2="43" ${LINE}/>` +
+    dot(80, 121, "1", 6, -10) + dot(215, 43, "2", -18, -6),
+  // Изотерма в осях p–V: гипербола p = 12 / V
+  pV: () => {
+    let pts = [];
+    for (let v = 1.5; v <= 10.01; v += 0.25) pts.push((30 + v * 20).toFixed(1) + "," + (150 - 12 / v * 13).toFixed(1));
+    return axes("V", "p") + `<polyline points="${pts.join(" ")}" ${LINE}/>` +
+      dot(60, 46, "1") + dot(230, 134.4, "2", -6, -12);
+  },
+  // Изобара в осях V–T: точки A (300 К, 2 л) и B (450 К, 3 л)
+  VT: () => axes("T, К", "V, л") +
+    `<line x1="30" y1="150" x2="70" y2="126.7" ${LINE} stroke-dasharray="5 5" stroke-width="2"/>
+     <line x1="70" y1="126.7" x2="230" y2="33.3" ${LINE}/>
+     <g stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" opacity=".6">
+       <line x1="150" y1="80" x2="150" y2="150"/><line x1="150" y1="80" x2="30" y2="80"/>
+       <line x1="210" y1="45" x2="210" y2="150"/><line x1="210" y1="45" x2="30" y2="45"/>
+     </g>
+     <text x="150" y="165" font-size="12" fill="currentColor" text-anchor="middle">300</text>
+     <text x="210" y="165" font-size="12" fill="currentColor" text-anchor="middle">450</text>
+     <text x="24" y="84" font-size="12" fill="currentColor" text-anchor="end">2</text>
+     <text x="24" y="49" font-size="12" fill="currentColor" text-anchor="end">?</text>` +
+    dot(150, 80, "A", 6, 16) + dot(210, 45, "B", 6, 16)
+};
 
 // Превращает ввод вроде «5,3·10^-26», «5.3*10-26», «5,3e-26» в число
 function parseAnswer(raw) {
@@ -190,7 +285,7 @@ const solved = loadSolved();
 function updateProgress() {
   document.getElementById("barFill").style.width = (solved.size / TASKS.length * 100) + "%";
   document.getElementById("progressText").textContent =
-    solved.size === TASKS.length ? "Все 8 задач решены!" : "Решено " + solved.size + " из " + TASKS.length;
+    solved.size === TASKS.length ? "Все " + TASKS.length + " задач решены!" : "Решено " + solved.size + " из " + TASKS.length;
 }
 
 // Рисуем карточки задач
@@ -201,13 +296,16 @@ TASKS.forEach((t, i) => {
   el.innerHTML = `
     <h2><span>${i + 1}. ${t.title}</span><span class="badge">${solved.has(i) ? "Решено" : ""}</span></h2>
     <p class="cond">${t.cond}</p>
-    <div class="row">
+    ${t.graph ? `<div class="graph"><svg viewBox="0 0 260 175" role="img" aria-label="График">${GRAPHS[t.graph]()}</svg></div>` : ""}
+    ${t.options
+      ? `<div class="opts">${t.options.map((o, k) => `<button type="button" data-k="${k}">${o}</button>`).join("")}</div>`
+      : `<div class="row">
       <input type="text" inputmode="text" autocomplete="off" placeholder="Твой ответ">
       <span class="unit">${t.unit}</span>
     </div>
-    <p class="fmt">Можно писать так: 5,3e-26 или 5,3·10^-26</p>
+    <p class="fmt">Можно писать так: 5,3e-26 или 5,3·10^-26</p>`}
     <div class="btns">
-      <button type="button" class="main" data-a="check">Проверить</button>
+      ${t.options ? "" : `<button type="button" class="main" data-a="check">Проверить</button>`}
       <button type="button" data-a="hint">Подсказка</button>
       <button type="button" data-a="sol">Решение</button>
     </div>
@@ -228,10 +326,7 @@ TASKS.forEach((t, i) => {
     if (diff <= 0.03) {
       msg.className = "msg ok";
       msg.textContent = "Верно!";
-      solved.add(i); saveSolved();
-      el.classList.add("solved");
-      el.querySelector(".badge").textContent = "Решено";
-      updateProgress();
+      markSolved();
     } else {
       msg.className = "msg bad";
       // Подсказываем, если ошибка в степени десятки (частая ошибка с единицами)
@@ -242,8 +337,33 @@ TASKS.forEach((t, i) => {
     }
   }
 
-  el.querySelector('[data-a="check"]').onclick = check;
-  input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+  function markSolved() {
+    solved.add(i); saveSolved();
+    el.classList.add("solved");
+    el.querySelector(".badge").textContent = "Решено";
+    updateProgress();
+  }
+
+  if (t.options) {
+    // Задача с вариантами: нажатие на вариант сразу проверяет его
+    el.querySelectorAll(".opts button").forEach(b => {
+      b.onclick = () => {
+        const k = +b.dataset.k;
+        if (k === t.correct) {
+          el.querySelectorAll(".opts button").forEach(x => x.classList.remove("wrong"));
+          b.classList.add("right");
+          msg.className = "msg ok"; msg.textContent = "Верно!";
+          markSolved();
+        } else {
+          b.classList.add("wrong");
+          msg.className = "msg bad"; msg.textContent = "Нет, попробуй другой вариант или открой подсказку.";
+        }
+      };
+    });
+  } else {
+    el.querySelector('[data-a="check"]').onclick = check;
+    input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+  }
   el.querySelector('[data-a="hint"]').onclick = () => el.querySelector(".hint").classList.toggle("show");
   el.querySelector('[data-a="sol"]').onclick = () => el.querySelector(".sol").classList.toggle("show");
   box.appendChild(el);
