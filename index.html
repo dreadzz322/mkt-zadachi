@@ -4,94 +4,252 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Задачи по МКТ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
-  /* Цвета для светлой темы */
+  /* ===== Цвета: светлая тема ===== */
   :root {
-    --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #5d6676;
-    --line: #dfe3ea; --accent: #2f6fdf; --accent-text: #ffffff;
-    --ok: #1f8a4c; --ok-bg: #e6f5ec; --bad: #c0392b; --bad-bg: #fbeaea;
-    --hint-bg: #fff6df; --sol-bg: #eef3fc;
+    --bg: #f4f3fb; --card: #ffffff; --text: #1c1b2e; --muted: #6b6a82; --line: #e4e2f0;
+    --field: #f7f6fd;
+    --accent: #5b4dff; --accent2: #19b3a6; --gold: #f5a524;
+    --ok: #16a34a; --ok-bg: #e8f7ee; --bad: #dc2626; --bad-bg: #fdecec;
+    --hint-bg: #fff6df; --sol-bg: #eeecff;
+    --c-base: #8b5cf6; --c-laws: #f97316; --c-graph: #0ea5a0;
+    --shadow: 0 6px 20px rgba(40, 30, 120, .08);
   }
-  /* Цвета для тёмной темы телефона */
+  /* ===== Цвета: тёмная тема телефона ===== */
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #12151b; --card: #1b2029; --text: #e6e9ef; --muted: #9aa3b2;
-      --line: #2c3340; --accent: #5b8ff0; --accent-text: #0e1116;
-      --ok: #4cc283; --ok-bg: #173226; --bad: #f07a6e; --bad-bg: #3a1f1d;
-      --hint-bg: #352d17; --sol-bg: #1d2a40;
+      --bg: #0f0e1a; --card: #1a1928; --text: #ecebf6; --muted: #a09fb8; --line: #2c2a40;
+      --field: #13121f;
+      --accent: #8c80ff; --accent2: #2dd4bf; --gold: #ffc246;
+      --ok: #4ade80; --ok-bg: #14301f; --bad: #f87171; --bad-bg: #3a1a1a;
+      --hint-bg: #352d17; --sol-bg: #24214a;
+      --c-base: #a78bfa; --c-laws: #fb923c; --c-graph: #2dd4bf;
+      --shadow: 0 6px 20px rgba(0, 0, 0, .35);
     }
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
-    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 16px/1.5 "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
-  main { max-width: 720px; margin: 0 auto; padding: 16px; }
-  h1 { font-size: 1.5rem; margin: 8px 0 4px; }
-  .sub { color: var(--muted); margin: 0 0 16px; }
-  .progress { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 8px 0; }
+  main { max-width: 720px; margin: 0 auto; padding: 0 16px 16px; }
+  button { font-family: inherit; }
+
+  /* ===== Шапка с градиентом и летающими «молекулами» ===== */
+  .hero {
+    position: relative; overflow: hidden; color: #fff;
+    background: linear-gradient(135deg, #6a5cff 0%, #2f8cff 55%, #19c3b1 100%);
+    border-radius: 0 0 28px 28px; padding: 28px 16px 22px;
+  }
+  .hero-in { position: relative; z-index: 1; max-width: 688px; margin: 0 auto; }
+  .hero h1 { font-size: 2rem; font-weight: 900; margin: 0; letter-spacing: -.5px; }
+  .hero p { margin: 4px 0 16px; opacity: .92; }
+  .bub { position: absolute; border-radius: 50%; background: rgba(255,255,255,.18); animation: float 9s ease-in-out infinite; }
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(18px, -14px); }
+    50% { transform: translate(-10px, 12px); }
+    75% { transform: translate(12px, 8px); }
+  }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat { background: rgba(255,255,255,.16); border-radius: 14px; padding: 8px 10px; backdrop-filter: blur(4px); }
+  .stat b { display: block; font-size: 1.35rem; font-weight: 900; line-height: 1.2; }
+  .stat span { font-size: .78rem; opacity: .9; }
+  .rank { margin-top: 10px; background: rgba(255,255,255,.16); border-radius: 14px; padding: 10px 12px; }
+  .rank-top { display: flex; justify-content: space-between; gap: 8px; font-size: .9rem; }
+  .rank-top b { font-weight: 900; }
+  .rank-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,.25); margin-top: 6px; overflow: hidden; }
+  .rank-bar div { height: 100%; width: 0; background: #fff; border-radius: 4px; transition: width .5s; }
+
+  /* ===== Липкая полоска прогресса ===== */
+  .sticky { position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 10px 0 8px; }
   .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
-  .bar > div { height: 100%; width: 0; background: var(--ok); transition: width .3s; }
-  .progress-text { font-size: .9rem; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between; }
-  .progress-text button { background: none; border: 0; color: var(--accent); font: inherit; padding: 0; cursor: pointer; }
-  details.sheet, .task {
-    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-    padding: 14px; margin: 12px 0;
+  .bar > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .5s; }
+  .sticky-row { display: flex; justify-content: space-between; align-items: center; font-size: .88rem; color: var(--muted); margin-top: 4px; }
+  .sticky-row b { color: var(--gold); }
+  .linkbtn { background: none; border: 0; color: var(--accent); font: inherit; padding: 0; cursor: pointer; }
+
+  /* ===== Общий вид карточек ===== */
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 16px; margin: 14px 0; box-shadow: var(--shadow);
   }
-  details.sheet summary { font-weight: 600; cursor: pointer; }
+  .card h2 { font-size: 1.15rem; font-weight: 800; margin: 0 0 4px; }
+  .muted { color: var(--muted); font-size: .92rem; margin: 0 0 10px; }
+
+  /* ===== Симулятор газа ===== */
+  #simCanvas { display: block; width: 100%; height: 200px; border-radius: 12px; background: var(--field); border: 1px solid var(--line); }
+  .legend { display: flex; justify-content: space-between; font-size: .78rem; color: var(--muted); margin: 6px 2px 0; }
+  .legend i { display: inline-block; width: 60px; height: 6px; border-radius: 3px; vertical-align: middle; margin: 0 6px;
+    background: linear-gradient(90deg, hsl(220 85% 58%), hsl(110 70% 45%), hsl(0 85% 58%)); }
+  .gauges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 8px; }
+  .g { background: var(--field); border: 1px solid var(--line); border-radius: 12px; padding: 8px; text-align: center; }
+  .g span { display: block; font-size: .75rem; color: var(--muted); }
+  .g b { font-size: 1.3rem; font-weight: 900; }
+  .g small { color: var(--muted); margin-left: 2px; }
+  .g.p b { color: var(--accent); }
+  .pbar { height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; margin-bottom: 12px; }
+  .pbar div { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent2), var(--accent), #ff4d6d); transition: width .4s; }
+  .sl { display: block; margin: 10px 0; }
+  .sl-top { display: flex; justify-content: space-between; font-size: .9rem; font-weight: 600; }
+  .sl-top output { color: var(--accent); font-weight: 800; }
+  input[type=range] { width: 100%; margin: 6px 0 0; accent-color: var(--accent); height: 28px; }
+  .sim-tip { background: var(--sol-bg); border-radius: 12px; padding: 10px 12px; font-size: .92rem; margin: 10px 0 0; min-height: 3em; transition: background .3s; }
+  .sim-tip.flash { animation: tipflash .6s; }
+  @keyframes tipflash { from { transform: scale(.98); opacity: .4; } to { transform: none; opacity: 1; } }
+
+  /* ===== Шпаргалка ===== */
+  details.sheet summary { font-weight: 800; cursor: pointer; }
   table { width: 100%; border-collapse: collapse; font-size: .92rem; margin-top: 10px; }
   td { padding: 6px 4px; border-top: 1px solid var(--line); vertical-align: top; }
-  td:nth-child(2) { white-space: nowrap; font-weight: 600; }
+  td:nth-child(2) { white-space: nowrap; font-weight: 700; }
   .rules { font-size: .92rem; margin: 10px 0 0; padding-left: 20px; }
-  .task.solved { border-color: var(--ok); }
-  .task h2 { font-size: 1.05rem; margin: 0 0 6px; display: flex; justify-content: space-between; gap: 8px; }
-  .badge { font-size: .8rem; font-weight: 600; color: var(--ok); white-space: nowrap; }
+
+  /* ===== Фильтр по темам ===== */
+  .filters { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 2px; scrollbar-width: none; }
+  .filters::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: none; border: 1px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 999px; padding: 7px 14px; font-size: .9rem; font-weight: 700; cursor: pointer;
+  }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ===== Карточка задачи ===== */
+  .task { border-left: 5px solid var(--tc); animation: rise .4s ease both; }
+  .task.base { --tc: var(--c-base); } .task.laws { --tc: var(--c-laws); } .task.graph { --tc: var(--c-graph); }
+  .task.hidden { display: none; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .task-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .tag { font-size: .75rem; font-weight: 800; color: var(--tc); background: color-mix(in srgb, var(--tc) 14%, transparent);
+    padding: 3px 10px; border-radius: 999px; }
+  .stars { font-size: 1.15rem; letter-spacing: 2px; white-space: nowrap; }
+  .stars .on { color: var(--gold); }
+  .stars .pot { color: color-mix(in srgb, var(--gold) 45%, var(--line)); }
+  .stars .off { color: var(--line); }
+  .stars.pop span.on { display: inline-block; animation: pop .5s ease both; }
+  .stars.pop span.on:nth-child(2) { animation-delay: .1s; } .stars.pop span.on:nth-child(3) { animation-delay: .2s; }
+  @keyframes pop { 0% { transform: scale(.2) rotate(-40deg); } 60% { transform: scale(1.5) rotate(10deg); } 100% { transform: none; } }
+  .task.solved { background: linear-gradient(180deg, color-mix(in srgb, var(--ok) 7%, var(--card)), var(--card) 70%); }
   .cond { margin: 0 0 10px; }
   .row { display: flex; gap: 8px; align-items: center; }
   .row input {
-    flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 8px;
-    border: 1px solid var(--line); background: var(--bg); color: var(--text);
+    flex: 1; min-width: 0; font: inherit; font-weight: 700; padding: 11px 12px; border-radius: 12px;
+    border: 2px solid var(--line); background: var(--field); color: var(--text); outline: none; transition: border-color .2s;
   }
-  .unit { color: var(--muted); white-space: nowrap; }
-  .fmt { font-size: .82rem; color: var(--muted); margin: 4px 0 10px; }
+  .row input:focus { border-color: var(--accent); }
+  .unit { color: var(--muted); white-space: nowrap; font-weight: 700; }
+  .fmt { font-size: .8rem; color: var(--muted); margin: 4px 0 10px; }
   .btns { display: flex; gap: 8px; flex-wrap: wrap; }
   .btns button {
-    font: inherit; font-size: .95rem; padding: 9px 14px; border-radius: 8px; cursor: pointer;
-    border: 1px solid var(--line); background: var(--card); color: var(--text);
+    font-size: .95rem; font-weight: 700; padding: 10px 14px; border-radius: 12px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--card); color: var(--text); transition: transform .1s;
   }
-  .btns button.main { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
-  .msg { margin-top: 10px; padding: 8px 12px; border-radius: 8px; display: none; }
-  .msg.ok { display: block; background: var(--ok-bg); color: var(--ok); }
-  .msg.bad { display: block; background: var(--bad-bg); color: var(--bad); }
-  .hint, .sol { margin-top: 10px; padding: 10px 12px; border-radius: 8px; display: none; }
+  .btns button:active, .opts button:active, .chip:active { transform: scale(.96); }
+  .btns button.main { background: linear-gradient(135deg, var(--accent), #2f8cff); color: #fff; border: 0; }
+  .btns small { font-weight: 600; color: var(--muted); }
+  .msg { margin-top: 10px; padding: 9px 12px; border-radius: 12px; display: none; font-weight: 700; }
+  .msg.ok { display: block; background: var(--ok-bg); color: var(--ok); animation: rise .3s; }
+  .msg.bad { display: block; background: var(--bad-bg); color: var(--bad); animation: rise .3s; }
+  .hint, .sol { margin-top: 10px; padding: 10px 12px; border-radius: 12px; display: none; }
   .hint { background: var(--hint-bg); }
   .sol { background: var(--sol-bg); }
-  .hint.show, .sol.show { display: block; }
+  .hint.show, .sol.show { display: block; animation: rise .3s; }
   .sol p { margin: 4px 0; }
-  /* Графики и задачи с вариантами ответа */
+  .shake { animation: shake .45s; }
+  @keyframes shake {
+    0%, 100% { transform: none; } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); }
+    60% { transform: translateX(-5px); } 80% { transform: translateX(3px); }
+  }
+
+  /* ===== Графики и варианты ответа ===== */
   .graph { margin: 0 0 10px; color: var(--text); }
   .graph svg { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto; }
+  .gl { stroke: var(--accent); }
+  .gd { fill: var(--accent); }
   .opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
   .opts button {
-    font: inherit; text-align: left; padding: 10px 12px; border-radius: 8px; cursor: pointer;
-    border: 1px solid var(--line); background: var(--bg); color: var(--text);
+    font: inherit; font-weight: 700; text-align: left; padding: 11px 12px; border-radius: 12px; cursor: pointer;
+    border: 2px solid var(--line); background: var(--field); color: var(--text); transition: transform .1s;
   }
   .opts button.right { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
   .opts button.wrong { border-color: var(--bad); background: var(--bad-bg); color: var(--bad); }
+
+  /* ===== Всплывающие сообщения, конфетти, финальное окно ===== */
+  #toasts { position: fixed; left: 0; right: 0; bottom: 18px; z-index: 60; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; padding: 0 16px; }
+  .toast {
+    background: var(--text); color: var(--bg); font-weight: 800; padding: 10px 18px; border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25); animation: toastIn .35s ease both; text-align: center;
+  }
+  .toast.out { animation: toastOut .4s ease both; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(.9); } to { opacity: 1; transform: none; } }
+  @keyframes toastOut { to { opacity: 0; transform: translateY(10px); } }
+  #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+  .modal { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(10, 8, 30, .55); }
+  .modal.show { display: flex; animation: rise .3s; }
+  .modal-box { background: var(--card); border-radius: 24px; padding: 24px 20px; max-width: 380px; width: 100%; text-align: center; box-shadow: var(--shadow); }
+  .modal-box h2 { font-size: 1.5rem; font-weight: 900; margin: 0 0 4px; }
+  .big-stars { font-size: 2.6rem; font-weight: 900; color: var(--gold); margin: 8px 0 0; }
+  .modal-box .btns { justify-content: center; margin-top: 16px; }
   footer { color: var(--muted); font-size: .85rem; text-align: center; margin: 24px 0 8px; }
+
+  /* Если в телефоне отключены анимации — уважаем это */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>Задачи по МКТ</h1>
-  <p class="sub">Молекулярно-кинетическая теория, 10 класс. Реши, впиши ответ и нажми «Проверить».</p>
+<header class="hero">
+  <span class="bub" style="width:70px;height:70px;left:-14px;top:18px"></span>
+  <span class="bub" style="width:36px;height:36px;right:30px;top:14px;animation-delay:-3s"></span>
+  <span class="bub" style="width:110px;height:110px;right:-40px;bottom:-30px;animation-delay:-5s"></span>
+  <span class="bub" style="width:18px;height:18px;left:45%;top:10px;animation-delay:-1s"></span>
+  <div class="hero-in">
+    <h1>Задачи по МКТ</h1>
+    <p>Молекулярно-кинетическая теория, 10 класс. Решай, собирай звёзды, повышай звание.</p>
+    <div class="stats">
+      <div class="stat"><b id="stStars">0</b><span>звёзд из 39</span></div>
+      <div class="stat"><b id="stStreak">0</b><span>серия подряд</span></div>
+      <div class="stat"><b id="stBest">0</b><span>лучшая серия</span></div>
+    </div>
+    <div class="rank">
+      <div class="rank-top"><span>Звание: <b id="rankName">Молекула</b></span><span id="rankNext"></span></div>
+      <div class="rank-bar"><div id="rankFill"></div></div>
+    </div>
+  </div>
+</header>
 
-  <div class="progress">
+<main>
+  <div class="sticky">
     <div class="bar"><div id="barFill"></div></div>
-    <div class="progress-text"><span id="progressText">Решено 0 из 8</span><button id="reset" type="button">Сбросить</button></div>
+    <div class="sticky-row"><span id="progressText">Решено 0 из 13</span><span><b id="stickyStars">★ 0</b></span><button id="reset" class="linkbtn" type="button">Сбросить</button></div>
   </div>
 
-  <details class="sheet">
+  <!-- Симулятор газа -->
+  <section class="card sim">
+    <h2>Лаборатория: газ в сосуде</h2>
+    <p class="muted">Двигай ползунки. Давление здесь честно считается по ударам молекул о стенки и поршень.</p>
+    <canvas id="simCanvas" aria-label="Анимация молекул газа в сосуде с поршнем"></canvas>
+    <div class="legend"><span>медленные<i></i>быстрые</span><span>справа поршень</span></div>
+    <div class="gauges">
+      <div class="g p"><span>Давление</span><b id="gP">100</b><small>кПа</small></div>
+      <div class="g"><span>Температура</span><b id="gT">300</b><small>К</small></div>
+      <div class="g"><span>Объём</span><b id="gV">2,0</b><small>л</small></div>
+    </div>
+    <div class="pbar"><div id="pFill"></div></div>
+    <label class="sl"><div class="sl-top"><span>Температура T</span><output id="oT">300 К</output></div>
+      <input type="range" id="sT" min="100" max="1000" step="10" value="300"></label>
+    <label class="sl"><div class="sl-top"><span>Объём V (двигает поршень)</span><output id="oV">2,0 л</output></div>
+      <input type="range" id="sV" min="1" max="3" step="0.1" value="2"></label>
+    <label class="sl"><div class="sl-top"><span>Число молекул N</span><output id="oN">60</output></div>
+      <input type="range" id="sN" min="10" max="150" step="5" value="60"></label>
+    <p class="sim-tip" id="simTip">Попробуй нагреть газ: молекулы станут краснее и быстрее, а давление вырастет.</p>
+  </section>
+
+  <details class="card sheet">
     <summary>Шпаргалка формул</summary>
     <table>
       <tr><td>Количество вещества</td><td>ν = m / M = N / Nₐ</td></tr>
@@ -108,89 +266,114 @@
     <ul class="rules">
       <li>Температура всегда в кельвинах: T = t + 273.</li>
       <li>Всё в СИ: г → кг, л → м³ (1 л = 0,001 м³), г/моль → кг/моль.</li>
+      <li>Звёзды: 3 за чистое решение, −1 за подсказку, −1 за ошибку, 1 если открыл решение.</li>
     </ul>
   </details>
+
+  <div class="filters" id="filters">
+    <button class="chip on" data-f="all" type="button">Все</button>
+    <button class="chip" data-f="base" type="button">Основы МКТ</button>
+    <button class="chip" data-f="laws" type="button">Газовые законы</button>
+    <button class="chip" data-f="graph" type="button">Графики</button>
+    <button class="chip" data-f="todo" type="button">Нерешённые</button>
+  </div>
 
   <div id="tasks"></div>
 
   <footer>Ответ засчитывается, если он отличается от точного не больше чем на 3%.</footer>
 </main>
 
+<div id="toasts"></div>
+<canvas id="confetti"></canvas>
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h2>Все задачи решены!</h2>
+    <p class="muted" id="mRank"></p>
+    <div class="big-stars" id="mStars"></div>
+    <p class="muted" id="mBest"></p>
+    <div class="btns">
+      <button type="button" class="main" id="mClose">Ура!</button>
+      <button type="button" id="mAgain">Пройти заново</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// Список задач: условие, правильный ответ, единицы, подсказка и решение
+// ================= Задачи =================
+const TOPICS = { base: "Основы МКТ", laws: "Газовые законы", graph: "Графики" };
 const TASKS = [
   {
-    title: "Число молекул",
+    topic: "base", title: "Число молекул",
     cond: "Сколько молекул содержится в 36 г воды (H₂O)?",
     answer: 1.204e24, unit: "молекул",
     hint: "Сначала найди молярную массу воды (H = 1, O = 16) и количество вещества ν = m / M. Потом умножь на Nₐ.",
     sol: ["M(H₂O) = 2·1 + 16 = 18 г/моль", "ν = m / M = 36 / 18 = 2 моль", "N = ν·Nₐ = 2 · 6,02·10²³ ≈ <b>1,2·10²⁴</b>", "Граммы можно не переводить: они сокращаются с г/моль."]
   },
   {
-    title: "Масса одной молекулы",
+    topic: "base", title: "Масса одной молекулы",
     cond: "Найди массу одной молекулы кислорода O₂.",
     answer: 5.316e-26, unit: "кг",
     hint: "Масса одного моля, делённая на число молекул в моле. Не забудь перевести г/моль в кг/моль.",
     sol: ["M(O₂) = 32 г/моль = 0,032 кг/моль", "m₀ = M / Nₐ = 0,032 / 6,02·10²³ ≈ <b>5,3·10⁻²⁶ кг</b>"]
   },
   {
-    title: "Энергия молекул",
+    topic: "base", title: "Энергия молекул",
     cond: "Чему равна средняя кинетическая энергия поступательного движения молекулы газа при 27 °C?",
     answer: 6.21e-21, unit: "Дж",
     hint: "E = 3/2 · kT. Переведи температуру в кельвины.",
     sol: ["T = 27 + 273 = 300 К", "E = 1,5 · 1,38·10⁻²³ · 300 ≈ <b>6,2·10⁻²¹ Дж</b>", "Эта энергия зависит только от температуры, а не от вида газа."]
   },
   {
-    title: "Скорость молекул",
+    topic: "base", title: "Скорость молекул",
     cond: "Найди среднеквадратичную скорость молекул азота N₂ при 0 °C.",
     answer: 493, unit: "м/с",
     hint: "v = √(3RT / M). M(N₂) = 28 г/моль, переведи в кг/моль.",
     sol: ["T = 273 К, M = 0,028 кг/моль", "v = √(3 · 8,31 · 273 / 0,028) = √243 000 ≈ <b>493 м/с</b>", "Это около 1800 км/ч."]
   },
   {
-    title: "Основное уравнение МКТ",
+    topic: "base", title: "Основное уравнение МКТ",
     cond: "Концентрация молекул газа n = 2,7·10²⁵ м⁻³, температура 27 °C. Найди давление газа.",
     answer: 1.118e5, unit: "Па",
     hint: "p = nkT. Температуру в кельвины.",
     sol: ["T = 300 К", "p = nkT = 2,7·10²⁵ · 1,38·10⁻²³ · 300 ≈ <b>1,1·10⁵ Па</b>", "Это почти атмосферное давление."]
   },
   {
-    title: "Менделеев–Клапейрон",
+    topic: "laws", title: "Менделеев–Клапейрон",
     cond: "В баллоне объёмом 20 л находится кислород под давлением 1,5 МПа при 27 °C. Найди массу кислорода.",
     answer: 0.385, unit: "кг",
     hint: "Из pV = (m/M)·RT выразим m = pVM / (RT). V = 0,02 м³, p = 1,5·10⁶ Па, M = 0,032 кг/моль.",
     sol: ["m = pVM / (RT)", "m = 1,5·10⁶ · 0,02 · 0,032 / (8,31 · 300) = 960 / 2493 ≈ <b>0,385 кг</b> (385 г)"]
   },
   {
-    title: "Изохорный процесс",
+    topic: "laws", title: "Изохорный процесс",
     cond: "Газ в закрытом баллоне нагрели с 27 °C до 127 °C. Начальное давление 100 кПа. Каким стало давление?",
     answer: 133.3, unit: "кПа",
     hint: "Объём не меняется, значит p₁/T₁ = p₂/T₂. Температуры обязательно в кельвинах.",
     sol: ["T₁ = 300 К, T₂ = 400 К", "p₂ = p₁ · T₂ / T₁ = 100 · 400 / 300 ≈ <b>133 кПа</b>", "Ловушка: с градусами Цельсия вышло бы 470 кПа, это неверно."]
   },
   {
-    title: "Изотермический процесс",
+    topic: "laws", title: "Изотермический процесс",
     cond: "Газ медленно сжали с 6 л до 2 л при постоянной температуре. Начальное давление 100 кПа. Каким стало давление?",
     answer: 300, unit: "кПа",
     hint: "Температура не меняется, значит p₁V₁ = p₂V₂. Литры здесь можно не переводить: они сокращаются.",
     sol: ["p₂ = p₁ · V₁ / V₂ = 100 · 6 / 2 = <b>300 кПа</b>", "Объём уменьшили в 3 раза, давление выросло в 3 раза."]
   },
   {
-    title: "Изобарный процесс",
+    topic: "laws", title: "Изобарный процесс",
     cond: "Газ при 27 °C занимает объём 3 л. Его нагрели при постоянном давлении до 127 °C. Каким стал объём?",
     answer: 4, unit: "л",
     hint: "Давление не меняется, значит V₁/T₁ = V₂/T₂. Температуры в кельвинах, литры можно оставить.",
     sol: ["T₁ = 300 К, T₂ = 400 К", "V₂ = V₁ · T₂ / T₁ = 3 · 400 / 300 = <b>4 л</b>", "Газ при нагреве расширяется: как воздушный шарик, который вынесли с мороза в тёплую комнату."]
   },
   {
-    title: "Изобарный процесс: температура",
+    topic: "laws", title: "Изобарный процесс: температура",
     cond: "При постоянном давлении объём газа увеличился в 1,5 раза. Начальная температура 7 °C. Какой стала температура (в кельвинах)?",
     answer: 420, unit: "К",
     hint: "V₂/V₁ = T₂/T₁. Значит, температура в кельвинах тоже выросла в 1,5 раза.",
     sol: ["T₁ = 7 + 273 = 280 К", "T₂ = T₁ · V₂ / V₁ = 280 · 1,5 = <b>420 К</b> (это 147 °C)", "Ловушка: 7 °C · 1,5 = 10,5 °C — неверно, умножать можно только кельвины."]
   },
   {
-    title: "График: какой процесс?",
+    topic: "graph", title: "Какой это процесс?",
     cond: "На графике показана зависимость давления газа от температуры. Масса газа не меняется. Какой это процесс?",
     graph: "pT",
     options: ["Изотермический (T = const)", "Изобарный (p = const)", "Изохорный (V = const)"],
@@ -199,7 +382,7 @@ const TASKS = [
     sol: ["Прямая через начало координат означает p ~ T, то есть p/T = const.", "Это закон Шарля: <b>изохорный процесс</b>, объём не меняется.", "Пунктир у нуля: так близко к абсолютному нулю газ уже не ведёт себя как идеальный, поэтому эту часть рисуют пунктиром."]
   },
   {
-    title: "График: какой процесс?",
+    topic: "graph", title: "Какой это процесс?",
     cond: "На графике показана зависимость давления газа от объёма. Масса газа не меняется. Какой это процесс?",
     graph: "pV",
     options: ["Изотермический (T = const)", "Изобарный (p = const)", "Изохорный (V = const)"],
@@ -208,7 +391,7 @@ const TASKS = [
     sol: ["Кривая называется гиперболой: p·V = const.", "Это закон Бойля–Мариотта: <b>изотермический процесс</b>, температура не меняется.", "Изобара на этом графике была бы горизонтальной линией, а изохора — вертикальной."]
   },
   {
-    title: "График: найди объём",
+    topic: "graph", title: "Найди объём по графику",
     cond: "На графике показана зависимость объёма газа от температуры при постоянном давлении. В точке A: T = 300 К, V = 2 л. Найди объём газа в точке B.",
     graph: "VT",
     answer: 3, unit: "л",
@@ -217,37 +400,37 @@ const TASKS = [
   }
 ];
 
-// Рисунки графиков (SVG). Цвет берётся из темы страницы через currentColor
-function axes(xLabel, yLabel) {
+// ================= Рисунки графиков (SVG) =================
+function axes(id, xLabel, yLabel) {
   return `
-    <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <defs><marker id="arr-${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
-    <line x1="30" y1="150" x2="245" y2="150" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
-    <line x1="30" y1="150" x2="30" y2="12" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="30" y1="150" x2="245" y2="150" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr-${id})"/>
+    <line x1="30" y1="150" x2="30" y2="12" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr-${id})"/>
     <text x="258" y="168" font-size="13" fill="currentColor" text-anchor="end">${xLabel}</text>
     <text x="38" y="20" font-size="13" fill="currentColor">${yLabel}</text>
     <text x="20" y="165" font-size="12" fill="currentColor">0</text>`;
 }
-const LINE = 'stroke="#2f6fdf" stroke-width="3" fill="none"';
+const LINE = 'class="gl" stroke-width="3" fill="none" stroke-linecap="round"';
 function dot(x, y, label, dx = 8, dy = -8) {
-  return `<circle cx="${x}" cy="${y}" r="4.5" fill="#2f6fdf"/>
-    <text x="${x + dx}" y="${y + dy}" font-size="13" font-weight="600" fill="currentColor">${label}</text>`;
+  return `<circle cx="${x}" cy="${y}" r="4.5" class="gd"/>
+    <text x="${x + dx}" y="${y + dy}" font-size="13" font-weight="800" fill="currentColor">${label}</text>`;
 }
 const GRAPHS = {
   // Изохора в осях p–T: прямая через начало координат
-  pT: () => axes("T", "p") +
+  pT: () => axes("pT", "T", "p") +
     `<line x1="30" y1="150" x2="80" y2="121" ${LINE} stroke-dasharray="5 5" stroke-width="2"/>
      <line x1="80" y1="121" x2="215" y2="43" ${LINE}/>` +
     dot(80, 121, "1", 6, -10) + dot(215, 43, "2", -18, -6),
   // Изотерма в осях p–V: гипербола p = 12 / V
   pV: () => {
-    let pts = [];
+    const pts = [];
     for (let v = 1.5; v <= 10.01; v += 0.25) pts.push((30 + v * 20).toFixed(1) + "," + (150 - 12 / v * 13).toFixed(1));
-    return axes("V", "p") + `<polyline points="${pts.join(" ")}" ${LINE}/>` +
+    return axes("pV", "V", "p") + `<polyline points="${pts.join(" ")}" ${LINE}/>` +
       dot(60, 46, "1") + dot(230, 134.4, "2", -6, -12);
   },
   // Изобара в осях V–T: точки A (300 К, 2 л) и B (450 К, 3 л)
-  VT: () => axes("T, К", "V, л") +
+  VT: () => axes("VT", "T, К", "V, л") +
     `<line x1="30" y1="150" x2="70" y2="126.7" ${LINE} stroke-dasharray="5 5" stroke-width="2"/>
      <line x1="70" y1="126.7" x2="230" y2="33.3" ${LINE}/>
      <g stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" opacity=".6">
@@ -261,40 +444,178 @@ const GRAPHS = {
     dot(150, 80, "A", 6, 16) + dot(210, 45, "B", 6, 16)
 };
 
+// ================= Разбор ответа =================
 // Превращает ввод вроде «5,3·10^-26», «5.3*10-26», «5,3e-26» в число
 function parseAnswer(raw) {
   let s = raw.trim().replace(/\s+/g, "").replace(/,/g, ".")
     .replace(/[−–]/g, "-")
     .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, c => "0123456789-"["⁰¹²³⁴⁵⁶⁷⁸⁹⁻".indexOf(c)]);
-  // «·10^-26», «*10-26», «x10^24» → «e-26»
   s = s.replace(/[·*×x]10\^?\(?([+-]?\d+)\)?$/i, "e$1");
   if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return NaN;
   return parseFloat(s);
 }
 
-// Сохранение прогресса в браузере (если браузер не даёт, просто работаем без него)
-const KEY = "mkt-solved";
-function loadSolved() {
-  try { return new Set(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch (e) { return new Set(); }
+// ================= Сохранение прогресса =================
+// state.stars — сколько звёзд получено за каждую решённую задачу
+const KEY = "mkt-v2";
+function loadState() {
+  const empty = { stars: {}, streak: 0, best: 0 };
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved && saved.stars) return Object.assign(empty, saved);
+    // Перенос прогресса со старой версии страницы: решённые задачи получают 3 звезды
+    const old = JSON.parse(localStorage.getItem("mkt-solved") || "[]");
+    old.forEach(i => { empty.stars[i] = 3; });
+  } catch (e) {}
+  return empty;
 }
-function saveSolved() {
-  try { localStorage.setItem(KEY, JSON.stringify([...solved])); } catch (e) {}
-}
-const solved = loadSolved();
+function saveState() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+const state = loadState();
 
-function updateProgress() {
-  document.getElementById("barFill").style.width = (solved.size / TASKS.length * 100) + "%";
+// То, что не сохраняем: ошибки и подсказки в текущем заходе
+const wrong = {}, usedHint = {}, usedSol = {};
+
+const MAX_STARS = TASKS.length * 3;
+const RANKS = [
+  [0, "Молекула"], [6, "Броуновская частица"], [13, "Идеальный газ"],
+  [21, "Знаток изопроцессов"], [30, "Клапейрон"], [37, "Больцман"]
+];
+const totalStars = () => Object.values(state.stars).reduce((a, b) => a + b, 0);
+const solvedCount = () => Object.keys(state.stars).length;
+function rankFor(stars) {
+  let k = 0;
+  RANKS.forEach((r, i) => { if (stars >= r[0]) k = i; });
+  return k;
+}
+// Сколько звёзд ещё можно получить за нерешённую задачу
+function potential(i) {
+  if (usedSol[i]) return 1;
+  let s = 3;
+  if (usedHint[i]) s--;
+  if (wrong[i]) s--;
+  return Math.max(1, s);
+}
+
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function vibrate(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+
+// ================= Шапка и прогресс =================
+function updateHeader() {
+  const st = totalStars(), n = solvedCount();
+  document.getElementById("stStars").textContent = st;
+  document.getElementById("stStreak").textContent = state.streak;
+  document.getElementById("stBest").textContent = state.best;
+  document.getElementById("stickyStars").textContent = "★ " + st;
+  document.getElementById("barFill").style.width = (n / TASKS.length * 100) + "%";
   document.getElementById("progressText").textContent =
-    solved.size === TASKS.length ? "Все " + TASKS.length + " задач решены!" : "Решено " + solved.size + " из " + TASKS.length;
+    n === TASKS.length ? "Все " + TASKS.length + " решены!" : "Решено " + n + " из " + TASKS.length;
+  const k = rankFor(st);
+  document.getElementById("rankName").textContent = RANKS[k][1];
+  const next = RANKS[k + 1];
+  document.getElementById("rankNext").textContent = next ? "до «" + next[1] + "»: " + (next[0] - st) + " ★" : "высшее звание";
+  document.getElementById("rankFill").style.width =
+    (next ? (st - RANKS[k][0]) / (next[0] - RANKS[k][0]) * 100 : 100) + "%";
 }
 
-// Рисуем карточки задач
+// ================= Всплывающие сообщения =================
+function toast(text) {
+  const t = document.createElement("div");
+  t.className = "toast"; t.textContent = text;
+  document.getElementById("toasts").appendChild(t);
+  setTimeout(() => t.classList.add("out"), 2300);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ================= Конфетти =================
+const cf = document.getElementById("confetti"), cx = cf.getContext("2d");
+let parts = [], cfRunning = false;
+const CF_COLORS = ["#6a5cff", "#2f8cff", "#19c3b1", "#f5a524", "#ff4d6d", "#a3e635"];
+function sizeConfetti() {
+  const d = devicePixelRatio || 1;
+  cf.width = innerWidth * d; cf.height = innerHeight * d;
+  cx.setTransform(d, 0, 0, d, 0, 0);
+}
+function burst(x, y, n = 70) {
+  if (reduced) return;
+  for (let k = 0; k < n; k++) {
+    parts.push({
+      x, y, vx: (Math.random() - .5) * 10, vy: -Math.random() * 10 - 3,
+      s: 5 + Math.random() * 6, r: Math.random() * 6, vr: (Math.random() - .5) * .4,
+      c: CF_COLORS[k % CF_COLORS.length], life: 80 + Math.random() * 50
+    });
+  }
+  if (!cfRunning) { cfRunning = true; requestAnimationFrame(cfTick); }
+}
+function cfTick() {
+  cx.clearRect(0, 0, innerWidth, innerHeight);
+  parts.forEach(p => {
+    p.vy += .28; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r);
+    cx.globalAlpha = Math.min(1, p.life / 30); cx.fillStyle = p.c;
+    cx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); cx.restore();
+  });
+  parts = parts.filter(p => p.life > 0 && p.y < innerHeight + 30);
+  if (parts.length) requestAnimationFrame(cfTick);
+  else { cfRunning = false; cx.clearRect(0, 0, innerWidth, innerHeight); }
+}
+addEventListener("resize", sizeConfetti);
+sizeConfetti();
+
+// ================= Карточки задач =================
 const box = document.getElementById("tasks");
+const cards = [];
+
+function renderStars(i, pop) {
+  const el = cards[i].querySelector(".stars");
+  const earned = state.stars[i];
+  const n = earned !== undefined ? earned : potential(i);
+  el.innerHTML = [0, 1, 2].map(k =>
+    `<span class="${k < n ? (earned !== undefined ? "on" : "pot") : "off"}">★</span>`).join("");
+  el.classList.remove("pop");
+  if (pop) { void el.offsetWidth; el.classList.add("pop"); }
+}
+
+function onCorrect(i, el, msg) {
+  msg.className = "msg ok";
+  if (state.stars[i] !== undefined) { msg.textContent = "Верно! (уже решено раньше)"; return; }
+  const rankBefore = rankFor(totalStars());
+  const got = potential(i);
+  state.stars[i] = got;
+  state.streak++;
+  state.best = Math.max(state.best, state.streak);
+  saveState();
+  msg.textContent = ["", "Верно! +1 ★", "Верно! +2 ★", "Отлично! +3 ★"][got];
+  el.classList.add("solved");
+  renderStars(i, true);
+  updateHeader();
+  vibrate([20, 40, 20]);
+  const r = el.getBoundingClientRect();
+  burst(r.left + r.width / 2, r.top + 40, got === 3 ? 90 : 50);
+  if ([3, 5, 8, 13].includes(state.streak)) toast("Серия " + state.streak + " подряд! Горячо, как газ при 1000 К");
+  const rankAfter = rankFor(totalStars());
+  if (rankAfter > rankBefore) setTimeout(() => toast("Новое звание: " + RANKS[rankAfter][1]), 600);
+  if (solvedCount() === TASKS.length) setTimeout(showFinal, 1200);
+  applyFilter();
+}
+
+function onWrong(i, el, msg, text) {
+  msg.className = "msg bad";
+  msg.textContent = text;
+  if (state.stars[i] === undefined) wrong[i] = (wrong[i] || 0) + 1;
+  if (state.streak) { state.streak = 0; saveState(); updateHeader(); }
+  renderStars(i);
+  vibrate(90);
+  el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
+}
+
 TASKS.forEach((t, i) => {
   const el = document.createElement("section");
-  el.className = "task" + (solved.has(i) ? " solved" : "");
+  el.className = "card task " + t.topic + (state.stars[i] !== undefined ? " solved" : "");
+  el.style.animationDelay = Math.min(i, 6) * 0.05 + "s";
+  el.dataset.topic = t.topic;
   el.innerHTML = `
-    <h2><span>${i + 1}. ${t.title}</span><span class="badge">${solved.has(i) ? "Решено" : ""}</span></h2>
+    <div class="task-top"><span class="tag">${TOPICS[t.topic]}</span><span class="stars"></span></div>
+    <h2>${i + 1}. ${t.title}</h2>
     <p class="cond">${t.cond}</p>
     ${t.graph ? `<div class="graph"><svg viewBox="0 0 260 175" role="img" aria-label="График">${GRAPHS[t.graph]()}</svg></div>` : ""}
     ${t.options
@@ -306,12 +627,13 @@ TASKS.forEach((t, i) => {
     <p class="fmt">Можно писать так: 5,3e-26 или 5,3·10^-26</p>`}
     <div class="btns">
       ${t.options ? "" : `<button type="button" class="main" data-a="check">Проверить</button>`}
-      <button type="button" data-a="hint">Подсказка</button>
+      <button type="button" data-a="hint">Подсказка <small>−1★</small></button>
       <button type="button" data-a="sol">Решение</button>
     </div>
     <div class="msg"></div>
     <div class="hint">${t.hint}</div>
     <div class="sol">${t.sol.map(p => "<p>" + p + "</p>").join("")}</div>`;
+  cards.push(el);
   const input = el.querySelector("input");
   const msg = el.querySelector(".msg");
 
@@ -323,40 +645,25 @@ TASKS.forEach((t, i) => {
       return;
     }
     const diff = Math.abs(v - t.answer) / Math.abs(t.answer);
-    if (diff <= 0.03) {
-      msg.className = "msg ok";
-      msg.textContent = "Верно!";
-      markSolved();
-    } else {
-      msg.className = "msg bad";
-      // Подсказываем, если ошибка в степени десятки (частая ошибка с единицами)
-      const ratio = Math.log10(Math.abs(v / t.answer));
-      msg.textContent = Math.abs(ratio - Math.round(ratio)) < 0.02 && Math.round(ratio) !== 0
-        ? "Почти: цифры верные, но ошибка в степени десяти. Проверь перевод единиц."
-        : "Пока неверно. Попробуй ещё или открой подсказку.";
-    }
-  }
-
-  function markSolved() {
-    solved.add(i); saveSolved();
-    el.classList.add("solved");
-    el.querySelector(".badge").textContent = "Решено";
-    updateProgress();
+    if (diff <= 0.03) { onCorrect(i, el, msg); return; }
+    // Подсказываем, если ошибка в степени десятки (частая ошибка с единицами)
+    const ratio = Math.log10(Math.abs(v / t.answer));
+    onWrong(i, el, msg, Math.abs(ratio - Math.round(ratio)) < 0.02 && Math.round(ratio) !== 0
+      ? "Почти: цифры верные, но ошибка в степени десяти. Проверь перевод единиц."
+      : "Пока неверно. Попробуй ещё или открой подсказку.");
   }
 
   if (t.options) {
     // Задача с вариантами: нажатие на вариант сразу проверяет его
     el.querySelectorAll(".opts button").forEach(b => {
       b.onclick = () => {
-        const k = +b.dataset.k;
-        if (k === t.correct) {
+        if (+b.dataset.k === t.correct) {
           el.querySelectorAll(".opts button").forEach(x => x.classList.remove("wrong"));
           b.classList.add("right");
-          msg.className = "msg ok"; msg.textContent = "Верно!";
-          markSolved();
+          onCorrect(i, el, msg);
         } else {
           b.classList.add("wrong");
-          msg.className = "msg bad"; msg.textContent = "Нет, попробуй другой вариант или открой подсказку.";
+          onWrong(i, el, msg, "Нет, попробуй другой вариант или открой подсказку.");
         }
       };
     });
@@ -364,17 +671,188 @@ TASKS.forEach((t, i) => {
     el.querySelector('[data-a="check"]').onclick = check;
     input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
   }
-  el.querySelector('[data-a="hint"]').onclick = () => el.querySelector(".hint").classList.toggle("show");
-  el.querySelector('[data-a="sol"]').onclick = () => el.querySelector(".sol").classList.toggle("show");
+  el.querySelector('[data-a="hint"]').onclick = () => {
+    const h = el.querySelector(".hint");
+    h.classList.toggle("show");
+    if (h.classList.contains("show") && state.stars[i] === undefined) { usedHint[i] = true; renderStars(i); }
+  };
+  el.querySelector('[data-a="sol"]').onclick = () => {
+    const s = el.querySelector(".sol");
+    s.classList.toggle("show");
+    if (s.classList.contains("show") && state.stars[i] === undefined) { usedSol[i] = true; renderStars(i); }
+  };
   box.appendChild(el);
+  renderStars(i);
 });
 
-document.getElementById("reset").onclick = () => {
-  solved.clear(); saveSolved();
-  location.reload();
-};
+// ================= Фильтр по темам =================
+let filter = "all";
+function applyFilter() {
+  cards.forEach((el, i) => {
+    const show = filter === "all" || (filter === "todo" ? state.stars[i] === undefined : el.dataset.topic === filter);
+    el.classList.toggle("hidden", !show);
+  });
+}
+document.getElementById("filters").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
+  applyFilter();
+});
 
-updateProgress();
+// ================= Финальное окно и сброс =================
+function showFinal() {
+  const st = totalStars();
+  document.getElementById("mStars").textContent = "★ " + st + " из " + MAX_STARS;
+  document.getElementById("mRank").textContent = "Твоё звание: " + RANKS[rankFor(st)][1];
+  document.getElementById("mBest").textContent = "Лучшая серия: " + state.best + " подряд";
+  document.getElementById("modal").classList.add("show");
+  burst(innerWidth / 2, innerHeight / 3, 160);
+}
+function resetAll() {
+  try { localStorage.removeItem(KEY); localStorage.removeItem("mkt-solved"); } catch (e) {}
+  location.reload();
+}
+document.getElementById("mClose").onclick = () => document.getElementById("modal").classList.remove("show");
+document.getElementById("mAgain").onclick = resetAll;
+document.getElementById("reset").onclick = () => { if (confirm("Сбросить все звёзды и начать заново?")) resetAll(); };
+
+updateHeader();
+
+// ================= Симулятор газа =================
+// Молекулы летают в сосуде с поршнем. Давление считаем по ударам о стенки:
+// каждый удар передаёт импульс 2·m·v, сумма импульсов за время на длину стенок и есть давление.
+(function gasSim() {
+  const cv = document.getElementById("simCanvas"), g = cv.getContext("2d");
+  const sim = { T: 300, V: 2, N: 60 };
+  const R = 3.5, VMAX = 3;            // радиус молекулы в пикселях и максимальный объём
+  let W = 300, H = 200, mols = [];
+  let imp = 0, tAcc = 0, pShown = 100, running = false, last = 0;
+
+  const vrms = T => 110 * Math.sqrt(T / 300);      // типичная скорость в пикселях в секунду
+  const pistonX = () => W * sim.V / VMAX;
+  // Давление по формуле p ~ N·T / V, при N=60, T=300 К, V=2 л это 100 кПа
+  const pTheory = () => 100 * (sim.N / 60) * (sim.T / 300) * (2 / sim.V);
+
+  function newMol() {
+    // Скорость по распределению, похожему на распределение Максвелла (в 2D)
+    const sigma = vrms(sim.T) / Math.SQRT2;
+    const v = sigma * Math.sqrt(-2 * Math.log(1 - Math.random()));
+    const a = Math.random() * Math.PI * 2;
+    return { x: R + Math.random() * (pistonX() - 2 * R), y: R + Math.random() * (H - 2 * R), vx: v * Math.cos(a), vy: v * Math.sin(a) };
+  }
+  function resize() {
+    const d = devicePixelRatio || 1;
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * d; cv.height = H * d;
+    g.setTransform(d, 0, 0, d, 0, 0);
+    mols.forEach(m => { m.x = Math.min(m.x, pistonX() - R); m.y = Math.min(m.y, H - R); });
+  }
+  function setN(n) {
+    while (mols.length < n) mols.push(newMol());
+    mols.length = n;
+  }
+
+  function step(dt) {
+    const px = pistonX();
+    for (const m of mols) {
+      m.x += m.vx * dt; m.y += m.vy * dt;
+      if (m.x < R) { m.x = R; imp += 2 * Math.abs(m.vx); m.vx = Math.abs(m.vx); }
+      if (m.x > px - R) { m.x = px - R; imp += 2 * Math.abs(m.vx); m.vx = -Math.abs(m.vx); }
+      if (m.y < R) { m.y = R; imp += 2 * Math.abs(m.vy); m.vy = Math.abs(m.vy); }
+      if (m.y > H - R) { m.y = H - R; imp += 2 * Math.abs(m.vy); m.vy = -Math.abs(m.vy); }
+    }
+    tAcc += dt;
+    if (tAcc > 0.5) {
+      // Измеренное давление (по ударам) сравниваем с ожидаемым для такой же средней энергии.
+      // Их отношение около 1, а колебания вокруг 1 — настоящие случайные «толчки» молекул.
+      const measured = imp / (tAcc * 2 * (px + H));
+      const v2 = mols.reduce((s, m) => s + m.vx * m.vx + m.vy * m.vy, 0);
+      const expected = v2 / (2 * px * H);
+      const target = expected > 0 ? pTheory() * measured / expected : 0;
+      pShown += (target - pShown) * 0.5;
+      imp = 0; tAcc = 0;
+      showGauges();
+    }
+  }
+
+  function draw() {
+    const px = pistonX();
+    g.clearRect(0, 0, W, H);
+    // Поршень и шток
+    const grad = g.createLinearGradient(px, 0, px + 14, 0);
+    grad.addColorStop(0, "#8f95a8"); grad.addColorStop(1, "#5d6378");
+    g.fillStyle = grad; g.fillRect(px, 0, 14, H);
+    g.fillStyle = "#7a8095"; g.fillRect(px + 14, H / 2 - 6, W - px - 14, 12);
+    // Молекулы: цвет от синего (медленные) к красному (быстрые)
+    const vRef = vrms(1000) * 1.2;
+    for (const m of mols) {
+      const v = Math.hypot(m.vx, m.vy);
+      const hue = 220 - 220 * Math.min(1, v / vRef);
+      g.fillStyle = `hsl(${hue} 85% 58%)`;
+      g.beginPath(); g.arc(m.x, m.y, R, 0, Math.PI * 2); g.fill();
+    }
+  }
+
+  function frame(t) {
+    if (!running) return;
+    const dt = Math.min(0.033, (t - last) / 1000 || 0.016);
+    last = t;
+    step(dt); draw();
+    requestAnimationFrame(frame);
+  }
+  function start() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); } }
+  function stop() { running = false; }
+
+  const fmt = (x, d = 0) => x.toFixed(d).replace(".", ",");
+  function showGauges() {
+    document.getElementById("gP").textContent = fmt(Math.max(0, pShown));
+    document.getElementById("gT").textContent = sim.T;
+    document.getElementById("gV").textContent = fmt(sim.V, 1);
+    // Шкала давления (корень, чтобы и маленькие, и большие значения были заметны)
+    document.getElementById("pFill").style.width = Math.min(100, Math.sqrt(Math.max(0, pShown) / 1700) * 100) + "%";
+  }
+
+  const tip = document.getElementById("simTip");
+  function say(text) { tip.textContent = text; tip.classList.remove("flash"); void tip.offsetWidth; tip.classList.add("flash"); }
+
+  document.getElementById("sT").addEventListener("input", e => {
+    const nt = +e.target.value, k = Math.sqrt(nt / sim.T);
+    mols.forEach(m => { m.vx *= k; m.vy *= k; });   // скорость ~ √T
+    const up = nt > sim.T; sim.T = nt;
+    document.getElementById("oT").textContent = nt + " К";
+    say(up ? "Теплее: молекулы быстрее и бьют сильнее и чаще. При постоянном объёме p ~ T — это изохора (задача 7)."
+           : "Холоднее: молекулы замедлились, давление падает. Скорость молекул пропорциональна √T.");
+    showGauges();
+  });
+  document.getElementById("sV").addEventListener("input", e => {
+    const nv = +e.target.value, down = nv < sim.V;
+    sim.V = nv;
+    const px = pistonX();
+    mols.forEach(m => { if (m.x > px - R) { m.x = px - R - Math.random() * px * 0.15; m.vx = -Math.abs(m.vx); } });
+    document.getElementById("oV").textContent = fmt(nv, 1) + " л";
+    say(down ? "Объём меньше: молекулам теснее, удары чаще, давление растёт. При постоянной T p·V = const — это изотерма (задача 8)."
+             : "Объём больше: удары реже, давление падает. Чтобы давление не менялось, газ надо нагреть — это изобара (задача 9).");
+    showGauges();
+  });
+  document.getElementById("sN").addEventListener("input", e => {
+    const nn = +e.target.value, up = nn > sim.N;
+    sim.N = nn; setN(nn);
+    document.getElementById("oN").textContent = nn;
+    say(up ? "Больше молекул — больше ударов о стенки. Давление растёт: p = nkT, где n — концентрация молекул."
+           : "Меньше молекул — меньше ударов, давление падает.");
+    showGauges();
+  });
+
+  resize();
+  setN(sim.N);
+  draw(); showGauges();
+  addEventListener("resize", () => { resize(); draw(); });
+  // Анимация работает только когда симулятор виден на экране — бережём батарею
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(es => es.forEach(en => en.isIntersecting ? start() : stop())).observe(cv);
+  } else start();
+})();
 </script>
 </body>
 </html>
