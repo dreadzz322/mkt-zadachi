@@ -37,6 +37,7 @@
   }
   main { max-width: 720px; margin: 0 auto; padding: 0 16px 16px; }
   button { font-family: inherit; }
+  [hidden] { display: none !important; }
 
   /* ===== Шапка с градиентом и летающими «молекулами» ===== */
   .hero {
@@ -64,13 +65,20 @@
   .rank-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,.25); margin-top: 6px; overflow: hidden; }
   .rank-bar div { height: 100%; width: 0; background: #fff; border-radius: 4px; transition: width .5s; }
 
-  /* ===== Липкая полоска прогресса ===== */
+  /* ===== Липкая полоска: вкладки и прогресс ===== */
   .sticky { position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 10px 0 8px; }
+  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px; margin-bottom: 8px; }
+  .tabs button { border: 0; background: none; color: var(--muted); font-weight: 800; font-size: .92rem; padding: 8px 4px; border-radius: 10px; cursor: pointer; transition: background .2s, color .2s; }
+  .tabs button.on { background: linear-gradient(135deg, var(--accent), #2f8cff); color: #fff; }
   .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
   .bar > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .5s; }
   .sticky-row { display: flex; justify-content: space-between; align-items: center; font-size: .88rem; color: var(--muted); margin-top: 4px; }
   .sticky-row b { color: var(--gold); }
-  .linkbtn { background: none; border: 0; color: var(--accent); font: inherit; padding: 0; cursor: pointer; }
+  .exam-row { display: flex; justify-content: space-between; font-size: .95rem; font-weight: 700; }
+  .exam-row b { color: var(--accent); font-size: 1.05rem; }
+  .exam-row.late b#exTime { color: var(--bad); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .4; } }
+  .linkbtn { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 700; padding: 0; cursor: pointer; }
 
   /* ===== Общий вид карточек ===== */
   .card {
@@ -79,6 +87,7 @@
   }
   .card h2 { font-size: 1.15rem; font-weight: 800; margin: 0 0 4px; }
   .muted { color: var(--muted); font-size: .92rem; margin: 0 0 10px; }
+  .view { animation: rise .3s ease both; }
 
   /* ===== Симулятор газа ===== */
   #simCanvas { display: block; width: 100%; height: 200px; border-radius: 12px; background: var(--field); border: 1px solid var(--line); }
@@ -97,9 +106,18 @@
   .sl-top { display: flex; justify-content: space-between; font-size: .9rem; font-weight: 600; }
   .sl-top output { color: var(--accent); font-weight: 800; }
   input[type=range] { width: 100%; margin: 6px 0 0; accent-color: var(--accent); height: 28px; }
-  .sim-tip { background: var(--sol-bg); border-radius: 12px; padding: 10px 12px; font-size: .92rem; margin: 10px 0 0; min-height: 3em; transition: background .3s; }
-  .sim-tip.flash { animation: tipflash .6s; }
+  .sim-tip { background: var(--sol-bg); border-radius: 12px; padding: 10px 12px; font-size: .92rem; margin: 10px 0 0; min-height: 3em; }
+  .flash { animation: tipflash .6s; }
   @keyframes tipflash { from { transform: scale(.98); opacity: .4; } to { transform: none; opacity: 1; } }
+  /* Живой график */
+  .plot-head { display: flex; justify-content: space-between; align-items: center; margin: 16px 0 8px; gap: 8px; }
+  .plot-head h3 { margin: 0; font-size: 1rem; font-weight: 800; }
+  .seg { display: inline-flex; background: var(--field); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+  .seg button { border: 0; background: none; color: var(--muted); font-weight: 800; font-size: .88rem; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  #plotCanvas { display: block; width: 100%; height: 190px; border-radius: 12px; background: var(--field); border: 1px solid var(--line); }
+  .plot-foot { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-top: 8px; }
+  .plot-note { font-size: .88rem; color: var(--muted); margin: 0; }
 
   /* ===== Кнопка скачивания теории ===== */
   .theory { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); transition: transform .1s; }
@@ -134,7 +152,7 @@
   .task.base { --tc: var(--c-base); } .task.laws { --tc: var(--c-laws); } .task.graph { --tc: var(--c-graph); }
   .task.hidden { display: none; }
   @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  .task-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .task-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 8px; }
   .tag { font-size: .75rem; font-weight: 800; color: var(--tc); background: color-mix(in srgb, var(--tc) 14%, transparent);
     padding: 3px 10px; border-radius: 999px; }
   .stars { font-size: 1.15rem; letter-spacing: 2px; white-space: nowrap; }
@@ -155,12 +173,16 @@
   .unit { color: var(--muted); white-space: nowrap; font-weight: 700; }
   .fmt { font-size: .8rem; color: var(--muted); margin: 4px 0 10px; }
   .btns { display: flex; gap: 8px; flex-wrap: wrap; }
-  .btns button {
+  .btns button, .bigbtn {
     font-size: .95rem; font-weight: 700; padding: 10px 14px; border-radius: 12px; cursor: pointer;
     border: 1px solid var(--line); background: var(--card); color: var(--text); transition: transform .1s;
   }
-  .btns button:active, .opts button:active, .chip:active { transform: scale(.96); }
-  .btns button.main { background: linear-gradient(135deg, var(--accent), #2f8cff); color: #fff; border: 0; }
+  .btns button:active, .opts button:active, .chip:active, .bigbtn:active { transform: scale(.96); }
+  .btns button.main, .bigbtn { background: linear-gradient(135deg, var(--accent), #2f8cff); color: #fff; border: 0; }
+  .bigbtn { display: block; width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 800; margin: 14px 0; }
+  .btns button.next { background: linear-gradient(135deg, var(--accent2), #2f8cff); color: #fff; border: 0; }
+  .btns button.next.ready { animation: nudge 1.2s ease-in-out infinite; }
+  @keyframes nudge { 50% { transform: translateX(4px); } }
   .btns small { font-weight: 600; color: var(--muted); }
   .msg { margin-top: 10px; padding: 9px 12px; border-radius: 12px; display: none; font-weight: 700; }
   .msg.ok { display: block; background: var(--ok-bg); color: var(--ok); animation: rise .3s; }
@@ -186,8 +208,25 @@
     font: inherit; font-weight: 700; text-align: left; padding: 11px 12px; border-radius: 12px; cursor: pointer;
     border: 2px solid var(--line); background: var(--field); color: var(--text); transition: transform .1s;
   }
+  .opts button.sel { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--field)); }
   .opts button.right { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
   .opts button.wrong { border-color: var(--bad); background: var(--bad-bg); color: var(--bad); }
+
+  /* ===== Тренажёр и контрольная ===== */
+  .mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .mini-stats div { background: var(--field); border: 1px solid var(--line); border-radius: 12px; padding: 8px; text-align: center; }
+  .mini-stats b { display: block; font-size: 1.35rem; font-weight: 900; color: var(--accent); }
+  .mini-stats span { font-size: .75rem; color: var(--muted); }
+  .exam-rules { margin: 8px 0 0; padding-left: 20px; }
+  .exam-rules li { margin: 2px 0; }
+  .grade { font-size: 4.5rem; font-weight: 900; line-height: 1; margin: 6px 0; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .result-head { text-align: center; }
+  .rv { border-left: 5px solid var(--tc); }
+  .rv-top { display: flex; justify-content: space-between; gap: 8px; font-weight: 800; }
+  .rv-ok { color: var(--ok); } .rv-bad { color: var(--bad); }
+  .rv p { margin: 4px 0; font-size: .92rem; }
+  .rv details summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: .92rem; margin-top: 6px; }
+  .rv details .sol { display: block; }
 
   /* ===== Всплывающие сообщения, конфетти, финальное окно ===== */
   #toasts { position: fixed; left: 0; right: 0; bottom: 18px; z-index: 60; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; padding: 0 16px; }
@@ -236,68 +275,135 @@
 
 <main>
   <div class="sticky">
-    <div class="bar"><div id="barFill"></div></div>
-    <div class="sticky-row"><span id="progressText">Решено 0 из 13</span><span><b id="stickyStars">★ 0</b></span><button id="reset" class="linkbtn" type="button">Сбросить</button></div>
-  </div>
-
-  <!-- Симулятор газа -->
-  <section class="card sim">
-    <h2>Лаборатория: газ в сосуде</h2>
-    <p class="muted">Двигай ползунки. Давление здесь честно считается по ударам молекул о стенки и поршень.</p>
-    <canvas id="simCanvas" aria-label="Анимация молекул газа в сосуде с поршнем"></canvas>
-    <div class="legend"><span>медленные<i></i>быстрые</span><span>справа поршень</span></div>
-    <div class="gauges">
-      <div class="g p"><span>Давление</span><b id="gP">100</b><small>кПа</small></div>
-      <div class="g"><span>Температура</span><b id="gT">300</b><small>К</small></div>
-      <div class="g"><span>Объём</span><b id="gV">2,0</b><small>л</small></div>
+    <nav class="tabs" id="tabs">
+      <button type="button" data-v="tasks" class="on">Задачи</button>
+      <button type="button" data-v="train">Тренажёр</button>
+      <button type="button" data-v="exam">Контрольная</button>
+    </nav>
+    <div id="rowTasks">
+      <div class="bar"><div id="barFill"></div></div>
+      <div class="sticky-row"><span id="progressText">Решено 0 из 13</span><span><b id="stickyStars">★ 0</b></span><button id="reset" class="linkbtn" type="button">Сбросить</button></div>
     </div>
-    <div class="pbar"><div id="pFill"></div></div>
-    <label class="sl"><div class="sl-top"><span>Температура T</span><output id="oT">300 К</output></div>
-      <input type="range" id="sT" min="100" max="1000" step="10" value="300"></label>
-    <label class="sl"><div class="sl-top"><span>Объём V (двигает поршень)</span><output id="oV">2,0 л</output></div>
-      <input type="range" id="sV" min="1" max="3" step="0.1" value="2"></label>
-    <label class="sl"><div class="sl-top"><span>Число молекул N</span><output id="oN">60</output></div>
-      <input type="range" id="sN" min="10" max="150" step="5" value="60"></label>
-    <p class="sim-tip" id="simTip">Попробуй нагреть газ: молекулы станут краснее и быстрее, а давление вырастет.</p>
-  </section>
-
-  <!-- Ссылка на документ с теорией -->
-  <a class="card theory" href="teoriya-mkt.docx" download="Теория_МКТ.docx">
-    <span class="theory-ic">W</span>
-    <span class="theory-tx"><b>Скачать теорию с примерами</b><small>Word, 8 страниц: формулы, разборы, графики</small></span>
-    <span class="theory-arr">↓</span>
-  </a>
-
-  <details class="card sheet">
-    <summary>Шпаргалка формул</summary>
-    <table>
-      <tr><td>Количество вещества</td><td>ν = m / M = N / Nₐ</td></tr>
-      <tr><td>Масса одной молекулы</td><td>m₀ = M / Nₐ</td></tr>
-      <tr><td>Средняя кинетическая энергия</td><td>E = 3/2 · kT</td></tr>
-      <tr><td>Среднеквадратичная скорость</td><td>v = √(3RT / M)</td></tr>
-      <tr><td>Основное уравнение МКТ</td><td>p = 2/3 · nE = nkT</td></tr>
-      <tr><td>Менделеев–Клапейрон</td><td>pV = (m/M) · RT</td></tr>
-      <tr><td>Изохора (V = const)</td><td>p₁/T₁ = p₂/T₂</td></tr>
-      <tr><td>Изотерма (T = const)</td><td>p₁V₁ = p₂V₂</td></tr>
-      <tr><td>Изобара (p = const)</td><td>V₁/T₁ = V₂/T₂</td></tr>
-    </table>
-    <p class="fmt">Nₐ = 6,02·10²³ моль⁻¹, k = 1,38·10⁻²³ Дж/К, R = 8,31 Дж/(моль·К)</p>
-    <ul class="rules">
-      <li>Температура всегда в кельвинах: T = t + 273.</li>
-      <li>Всё в СИ: г → кг, л → м³ (1 л = 0,001 м³), г/моль → кг/моль.</li>
-      <li>Звёзды: 3 за чистое решение, −1 за подсказку, −1 за ошибку, 1 если открыл решение.</li>
-    </ul>
-  </details>
-
-  <div class="filters" id="filters">
-    <button class="chip on" data-f="all" type="button">Все</button>
-    <button class="chip" data-f="base" type="button">Основы МКТ</button>
-    <button class="chip" data-f="laws" type="button">Газовые законы</button>
-    <button class="chip" data-f="graph" type="button">Графики</button>
-    <button class="chip" data-f="todo" type="button">Нерешённые</button>
+    <div id="rowTrain" class="sticky-row" hidden><span>Верно с первого раза: <b id="trRow">0 из 0</b></span><button id="trReset" class="linkbtn" type="button">Обнулить</button></div>
+    <div id="rowExam" class="exam-row" hidden><span>Осталось <b id="exTime">20:00</b></span><span>Отвечено <b id="exAns">0</b> из 10</span></div>
   </div>
 
-  <div id="tasks"></div>
+  <!-- ================= Вкладка «Задачи» ================= -->
+  <div id="view-tasks" class="view">
+    <!-- Симулятор газа -->
+    <section class="card sim">
+      <h2>Лаборатория: газ в сосуде</h2>
+      <p class="muted">Двигай ползунки. Давление здесь честно считается по ударам молекул о стенки и поршень.</p>
+      <canvas id="simCanvas" aria-label="Анимация молекул газа в сосуде с поршнем"></canvas>
+      <div class="legend"><span>медленные<i></i>быстрые</span><span>справа поршень</span></div>
+      <div class="gauges">
+        <div class="g p"><span>Давление</span><b id="gP">100</b><small>кПа</small></div>
+        <div class="g"><span>Температура</span><b id="gT">300</b><small>К</small></div>
+        <div class="g"><span>Объём</span><b id="gV">2,0</b><small>л</small></div>
+      </div>
+      <div class="pbar"><div id="pFill"></div></div>
+      <label class="sl"><div class="sl-top"><span>Температура T</span><output id="oT">300 К</output></div>
+        <input type="range" id="sT" min="100" max="1000" step="10" value="300"></label>
+      <label class="sl"><div class="sl-top"><span>Объём V (двигает поршень)</span><output id="oV">2,0 л</output></div>
+        <input type="range" id="sV" min="1" max="3" step="0.1" value="2"></label>
+      <label class="sl"><div class="sl-top"><span>Число молекул N</span><output id="oN">60</output></div>
+        <input type="range" id="sN" min="10" max="150" step="5" value="60"></label>
+      <p class="sim-tip" id="simTip">Попробуй нагреть газ: молекулы станут краснее и быстрее, а давление вырастет.</p>
+
+      <div class="plot-head">
+        <h3>Живой график</h3>
+        <div class="seg" id="plotAxes">
+          <button type="button" data-ax="pV" class="on">p(V)</button>
+          <button type="button" data-ax="pT">p(T)</button>
+          <button type="button" data-ax="VT">V(T)</button>
+        </div>
+      </div>
+      <canvas id="plotCanvas" aria-label="График состояния газа"></canvas>
+      <div class="plot-foot">
+        <p class="plot-note" id="plotNote">Двигай ползунки — точка оставит след. Меняй только объём и смотри p(V): получится гипербола (изотерма).</p>
+        <button class="linkbtn" id="plotClear" type="button">Очистить</button>
+      </div>
+    </section>
+
+    <!-- Ссылка на документ с теорией -->
+    <a class="card theory" href="teoriya-mkt.docx" download="Теория_МКТ.docx">
+      <span class="theory-ic">W</span>
+      <span class="theory-tx"><b>Скачать теорию с примерами</b><small>Word, 8 страниц: формулы, разборы, графики</small></span>
+      <span class="theory-arr">↓</span>
+    </a>
+
+    <details class="card sheet">
+      <summary>Шпаргалка формул</summary>
+      <table>
+        <tr><td>Количество вещества</td><td>ν = m / M = N / Nₐ</td></tr>
+        <tr><td>Масса одной молекулы</td><td>m₀ = M / Nₐ</td></tr>
+        <tr><td>Средняя кинетическая энергия</td><td>E = 3/2 · kT</td></tr>
+        <tr><td>Среднеквадратичная скорость</td><td>v = √(3RT / M)</td></tr>
+        <tr><td>Основное уравнение МКТ</td><td>p = 2/3 · nE = nkT</td></tr>
+        <tr><td>Менделеев–Клапейрон</td><td>pV = (m/M) · RT</td></tr>
+        <tr><td>Изохора (V = const)</td><td>p₁/T₁ = p₂/T₂</td></tr>
+        <tr><td>Изотерма (T = const)</td><td>p₁V₁ = p₂V₂</td></tr>
+        <tr><td>Изобара (p = const)</td><td>V₁/T₁ = V₂/T₂</td></tr>
+      </table>
+      <p class="fmt">Nₐ = 6,02·10²³ моль⁻¹, k = 1,38·10⁻²³ Дж/К, R = 8,31 Дж/(моль·К)</p>
+      <ul class="rules">
+        <li>Температура всегда в кельвинах: T = t + 273.</li>
+        <li>Всё в СИ: г → кг, л → м³ (1 л = 0,001 м³), г/моль → кг/моль.</li>
+        <li>Звёзды: 3 за чистое решение, −1 за подсказку, −1 за ошибку, 1 если открыл решение.</li>
+      </ul>
+    </details>
+
+    <div class="filters" id="filters">
+      <button class="chip on" data-f="all" type="button">Все</button>
+      <button class="chip" data-f="base" type="button">Основы МКТ</button>
+      <button class="chip" data-f="laws" type="button">Газовые законы</button>
+      <button class="chip" data-f="graph" type="button">Графики</button>
+      <button class="chip" data-f="todo" type="button">Нерешённые</button>
+    </div>
+
+    <div id="tasks"></div>
+  </div>
+
+  <!-- ================= Вкладка «Тренажёр» ================= -->
+  <div id="view-train" class="view" hidden>
+    <section class="card">
+      <h2>Тренажёр</h2>
+      <p class="muted">Бесконечные задачи: каждый раз новые числа. Звёзды здесь не начисляются, зато можно тренироваться сколько угодно.</p>
+      <div class="filters" id="trainTopics">
+        <button class="chip on" data-f="all" type="button">Все темы</button>
+        <button class="chip" data-f="base" type="button">Основы МКТ</button>
+        <button class="chip" data-f="laws" type="button">Газовые законы</button>
+        <button class="chip" data-f="graph" type="button">Графики</button>
+      </div>
+      <div class="mini-stats">
+        <div><b id="trOk">0</b><span>верно с первого раза</span></div>
+        <div><b id="trTotal">0</b><span>всего решено</span></div>
+        <div><b id="trStreak">0</b><span>серия</span></div>
+      </div>
+    </section>
+    <div id="trainBox"></div>
+  </div>
+
+  <!-- ================= Вкладка «Контрольная» ================= -->
+  <div id="view-exam" class="view" hidden>
+    <section class="card" id="examStart">
+      <h2>Контрольная работа</h2>
+      <p class="muted">Проверь себя как на настоящей контрольной.</p>
+      <ul class="exam-rules">
+        <li>10 случайных задач по всем темам</li>
+        <li>20 минут, таймер вверху экрана</li>
+        <li>Без подсказок и решений, ответы проверяются в конце</li>
+        <li>Оценка: 9–10 верных — «5», 7–8 — «4», 5–6 — «3», меньше — «2»</li>
+      </ul>
+      <button class="bigbtn" id="examGo" type="button">Начать контрольную</button>
+      <p class="muted" id="examBest"></p>
+    </section>
+    <div id="examRun" hidden>
+      <div id="examList"></div>
+      <button class="bigbtn" id="examSubmit" type="button">Сдать работу</button>
+    </div>
+    <div id="examResult" hidden></div>
+  </div>
 
   <footer>Ответ засчитывается, если он отличается от точного не больше чем на 3%.</footer>
 </main>
@@ -318,8 +424,106 @@
 </div>
 
 <script>
-// ================= Задачи =================
+// ================= Общие помощники =================
+const NA = 6.02e23, KB = 1.38e-23, R = 8.31;
 const TOPICS = { base: "Основы МКТ", laws: "Газовые законы", graph: "Графики" };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const ri = (a, b, step = 1) => a + step * Math.floor(Math.random() * ((b - a) / step + 1));
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+// Степень десяти надстрочными цифрами: 23 → ²³
+const SUP = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "-": "⁻" };
+const sup = n => String(n).split("").map(c => SUP[c]).join("");
+// Число в виде 9,03·10²³
+function sci(x, d = 2) {
+  let e = Math.floor(Math.log10(Math.abs(x)));
+  let m = (x / Math.pow(10, e)).toFixed(d);
+  if (Math.abs(+m) >= 10) { e++; m = (x / Math.pow(10, e)).toFixed(d); }
+  return m.replace(".", ",") + "·10" + sup(e);
+}
+// Красивая запись числа: большие и маленькие — со степенью, остальные — 3 значащие цифры
+function fmt(x) {
+  const a = Math.abs(x);
+  if (a === 0) return "0";
+  if (a >= 1e5 || a < 1e-4) return sci(x);
+  const s = a >= 100 ? String(Math.round(x)) : String(Number(x.toPrecision(3)));
+  return s.replace(".", ",").replace("-", "−");
+}
+const fmtT = t => (t < 0 ? "−" : "") + Math.abs(t);
+
+// Превращает ввод вроде «5,3·10^-26», «5.3*10-26», «5,3e-26» в число
+function parseAnswer(raw) {
+  let s = raw.trim().replace(/\s+/g, "").replace(/,/g, ".")
+    .replace(/[−–]/g, "-")
+    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, c => "0123456789-"["⁰¹²³⁴⁵⁶⁷⁸⁹⁻".indexOf(c)]);
+  s = s.replace(/[·*×x]10\^?\(?([+-]?\d+)\)?$/i, "e$1");
+  if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return NaN;
+  return parseFloat(s);
+}
+// Проверка числового ответа: {ok, text}
+function checkNumber(t, raw) {
+  const v = parseAnswer(raw);
+  if (isNaN(v)) return { ok: false, bad: true, text: "Не понял число. Пример записи: 5,3e-26" };
+  if (Math.abs(v - t.answer) / Math.abs(t.answer) <= 0.03) return { ok: true };
+  const ratio = Math.log10(Math.abs(v / t.answer));
+  return { ok: false, text: Math.abs(ratio - Math.round(ratio)) < 0.02 && Math.round(ratio) !== 0
+    ? "Почти: цифры верные, но ошибка в степени десяти. Проверь перевод единиц."
+    : "Пока неверно. Попробуй ещё или открой подсказку." };
+}
+
+// ================= Рисунки графиков (SVG) =================
+let svgId = 0;
+function axes(id, xLabel, yLabel) {
+  return `
+    <defs><marker id="arr-${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+    <line x1="30" y1="150" x2="245" y2="150" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr-${id})"/>
+    <line x1="30" y1="150" x2="30" y2="12" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr-${id})"/>
+    <text x="258" y="168" font-size="13" fill="currentColor" text-anchor="end">${xLabel}</text>
+    <text x="38" y="20" font-size="13" fill="currentColor">${yLabel}</text>
+    <text x="20" y="165" font-size="12" fill="currentColor">0</text>`;
+}
+const LINE = 'class="gl" stroke-width="3" fill="none" stroke-linecap="round"';
+function dot(x, y, label, dx = 8, dy = -8) {
+  return `<circle cx="${x}" cy="${y}" r="4.5" class="gd"/>
+    <text x="${x + dx}" y="${y + dy}" font-size="13" font-weight="800" fill="currentColor">${label}</text>`;
+}
+const AX = { pV: ["V", "p"], pT: ["T", "p"], VT: ["T", "V"] };
+// Форма линии: line0 — прямая через ноль, horiz/vert — горизонталь/вертикаль, hyper — гипербола
+function graphSVG(ax, shape) {
+  const id = "g" + (++svgId);
+  let body = "";
+  if (shape === "line0") body = `<line x1="30" y1="150" x2="80" y2="121" ${LINE} stroke-dasharray="5 5" stroke-width="2"/>
+     <line x1="80" y1="121" x2="215" y2="43" ${LINE}/>` + dot(80, 121, "1", 6, -10) + dot(215, 43, "2", -18, -6);
+  if (shape === "horiz") body = `<line x1="65" y1="85" x2="220" y2="85" ${LINE}/>` + dot(65, 85, "1") + dot(220, 85, "2", -6, -10);
+  if (shape === "vert") body = `<line x1="140" y1="135" x2="140" y2="35" ${LINE}/>` + dot(140, 135, "1") + dot(140, 35, "2");
+  if (shape === "hyper") {
+    const pts = [];
+    for (let v = 1.5; v <= 10.01; v += 0.25) pts.push((30 + v * 20).toFixed(1) + "," + (150 - 12 / v * 13).toFixed(1));
+    body = `<polyline points="${pts.join(" ")}" ${LINE}/>` + dot(60, 46, "1") + dot(230, 134.4, "2", -6, -12);
+  }
+  return `<svg viewBox="0 0 260 175" role="img" aria-label="График">${axes(id, AX[ax][0], AX[ax][1])}${body}</svg>`;
+}
+// График-прямая через ноль с точками A и B: подписи значений A, у B вместо значения «?»
+function pointSVG(xLabel, yLabel, TA, TB, YA) {
+  const id = "g" + (++svgId), f = TA / TB;
+  const xA = 30 + 180 * f, yA = 150 - 105 * f;
+  return `<svg viewBox="0 0 260 175" role="img" aria-label="График">${axes(id, xLabel, yLabel)}
+     <line x1="30" y1="150" x2="${30 + 180 * 0.22}" y2="${150 - 105 * 0.22}" ${LINE} stroke-dasharray="5 5" stroke-width="2"/>
+     <line x1="${30 + 180 * 0.22}" y1="${150 - 105 * 0.22}" x2="230" y2="${150 - 105 * 200 / 180}" ${LINE}/>
+     <g stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" opacity=".6">
+       <line x1="${xA}" y1="${yA}" x2="${xA}" y2="150"/><line x1="${xA}" y1="${yA}" x2="30" y2="${yA}"/>
+       <line x1="210" y1="45" x2="210" y2="150"/><line x1="210" y1="45" x2="30" y2="45"/>
+     </g>
+     <text x="${xA}" y="165" font-size="12" fill="currentColor" text-anchor="middle">${TA}</text>
+     <text x="210" y="165" font-size="12" fill="currentColor" text-anchor="middle">${TB}</text>
+     <text x="24" y="${yA + 4}" font-size="12" fill="currentColor" text-anchor="end">${fmt(YA)}</text>
+     <text x="24" y="49" font-size="12" fill="currentColor" text-anchor="end">?</text>
+     ${dot(xA, yA, "A", 6, 16)}${dot(210, 45, "B", 6, 16)}</svg>`;
+}
+
+// ================= Основные 13 задач (за них звёзды) =================
+const PROC_OPTS = ["Изотермический (T = const)", "Изобарный (p = const)", "Изохорный (V = const)"];
 const TASKS = [
   {
     topic: "base", title: "Число молекул",
@@ -394,106 +598,153 @@ const TASKS = [
   {
     topic: "graph", title: "Какой это процесс?",
     cond: "На графике показана зависимость давления газа от температуры. Масса газа не меняется. Какой это процесс?",
-    graph: "pT",
-    options: ["Изотермический (T = const)", "Изобарный (p = const)", "Изохорный (V = const)"],
-    correct: 2,
+    svg: () => graphSVG("pT", "line0"),
+    options: PROC_OPTS, correct: 2,
     hint: "Прямая на графике p(T) идёт в начало координат. Значит, p/T не меняется. В какой формуле p делится на T?",
     sol: ["Прямая через начало координат означает p ~ T, то есть p/T = const.", "Это закон Шарля: <b>изохорный процесс</b>, объём не меняется.", "Пунктир у нуля: так близко к абсолютному нулю газ уже не ведёт себя как идеальный, поэтому эту часть рисуют пунктиром."]
   },
   {
     topic: "graph", title: "Какой это процесс?",
     cond: "На графике показана зависимость давления газа от объёма. Масса газа не меняется. Какой это процесс?",
-    graph: "pV",
-    options: ["Изотермический (T = const)", "Изобарный (p = const)", "Изохорный (V = const)"],
-    correct: 0,
+    svg: () => graphSVG("pV", "hyper"),
+    options: PROC_OPTS, correct: 0,
     hint: "Это не прямая, а кривая: чем больше объём, тем меньше давление. Где произведение p·V постоянно?",
     sol: ["Кривая называется гиперболой: p·V = const.", "Это закон Бойля–Мариотта: <b>изотермический процесс</b>, температура не меняется.", "Изобара на этом графике была бы горизонтальной линией, а изохора — вертикальной."]
   },
   {
     topic: "graph", title: "Найди объём по графику",
     cond: "На графике показана зависимость объёма газа от температуры при постоянном давлении. В точке A: T = 300 К, V = 2 л. Найди объём газа в точке B.",
-    graph: "VT",
+    svg: () => pointSVG("T, К", "V, л", 300, 450, 2),
     answer: 3, unit: "л",
     hint: "Прямая через начало координат: V ~ T. Посмотри по графику температуру в точке B и примени V₁/T₁ = V₂/T₂.",
     sol: ["По графику T_B = 450 К.", "V_B = V_A · T_B / T_A = 2 · 450 / 300 = <b>3 л</b>", "Температура выросла в 1,5 раза, и объём вырос в 1,5 раза."]
   }
 ];
 
-// ================= Рисунки графиков (SVG) =================
-function axes(id, xLabel, yLabel) {
-  return `
-    <defs><marker id="arr-${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
-    <line x1="30" y1="150" x2="245" y2="150" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr-${id})"/>
-    <line x1="30" y1="150" x2="30" y2="12" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr-${id})"/>
-    <text x="258" y="168" font-size="13" fill="currentColor" text-anchor="end">${xLabel}</text>
-    <text x="38" y="20" font-size="13" fill="currentColor">${yLabel}</text>
-    <text x="20" y="165" font-size="12" fill="currentColor">0</text>`;
-}
-const LINE = 'class="gl" stroke-width="3" fill="none" stroke-linecap="round"';
-function dot(x, y, label, dx = 8, dy = -8) {
-  return `<circle cx="${x}" cy="${y}" r="4.5" class="gd"/>
-    <text x="${x + dx}" y="${y + dy}" font-size="13" font-weight="800" fill="currentColor">${label}</text>`;
-}
-const GRAPHS = {
-  // Изохора в осях p–T: прямая через начало координат
-  pT: () => axes("pT", "T", "p") +
-    `<line x1="30" y1="150" x2="80" y2="121" ${LINE} stroke-dasharray="5 5" stroke-width="2"/>
-     <line x1="80" y1="121" x2="215" y2="43" ${LINE}/>` +
-    dot(80, 121, "1", 6, -10) + dot(215, 43, "2", -18, -6),
-  // Изотерма в осях p–V: гипербола p = 12 / V
-  pV: () => {
-    const pts = [];
-    for (let v = 1.5; v <= 10.01; v += 0.25) pts.push((30 + v * 20).toFixed(1) + "," + (150 - 12 / v * 13).toFixed(1));
-    return axes("pV", "V", "p") + `<polyline points="${pts.join(" ")}" ${LINE}/>` +
-      dot(60, 46, "1") + dot(230, 134.4, "2", -6, -12);
-  },
-  // Изобара в осях V–T: точки A (300 К, 2 л) и B (450 К, 3 л)
-  VT: () => axes("VT", "T, К", "V, л") +
-    `<line x1="30" y1="150" x2="70" y2="126.7" ${LINE} stroke-dasharray="5 5" stroke-width="2"/>
-     <line x1="70" y1="126.7" x2="230" y2="33.3" ${LINE}/>
-     <g stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" opacity=".6">
-       <line x1="150" y1="80" x2="150" y2="150"/><line x1="150" y1="80" x2="30" y2="80"/>
-       <line x1="210" y1="45" x2="210" y2="150"/><line x1="210" y1="45" x2="30" y2="45"/>
-     </g>
-     <text x="150" y="165" font-size="12" fill="currentColor" text-anchor="middle">300</text>
-     <text x="210" y="165" font-size="12" fill="currentColor" text-anchor="middle">450</text>
-     <text x="24" y="84" font-size="12" fill="currentColor" text-anchor="end">2</text>
-     <text x="24" y="49" font-size="12" fill="currentColor" text-anchor="end">?</text>` +
-    dot(150, 80, "A", 6, 16) + dot(210, 45, "B", 6, 16)
-};
-
-// ================= Разбор ответа =================
-// Превращает ввод вроде «5,3·10^-26», «5.3*10-26», «5,3e-26» в число
-function parseAnswer(raw) {
-  let s = raw.trim().replace(/\s+/g, "").replace(/,/g, ".")
-    .replace(/[−–]/g, "-")
-    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, c => "0123456789-"["⁰¹²³⁴⁵⁶⁷⁸⁹⁻".indexOf(c)]);
-  s = s.replace(/[·*×x]10\^?\(?([+-]?\d+)\)?$/i, "e$1");
-  if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return NaN;
-  return parseFloat(s);
-}
+// ================= Генераторы случайных задач (для тренажёра и контрольной) =================
+const SUBST = [
+  { f: "H₂O", n: "воды", M: 18, calc: "2·1 + 16 = 18" },
+  { f: "CO₂", n: "углекислого газа", M: 44, calc: "12 + 2·16 = 44" },
+  { f: "O₂", n: "кислорода", M: 32, calc: "2·16 = 32" },
+  { f: "N₂", n: "азота", M: 28, calc: "2·14 = 28" },
+  { f: "CH₄", n: "метана", M: 16, calc: "12 + 4·1 = 16" },
+  { f: "NH₃", n: "аммиака", M: 17, calc: "14 + 3·1 = 17" }
+];
+const GASES = [
+  { f: "H₂", n: "водорода", nom: "водород", M: 2 }, { f: "He", n: "гелия", nom: "гелий", M: 4 },
+  { f: "N₂", n: "азота", nom: "азот", M: 28 }, { f: "O₂", n: "кислорода", nom: "кислород", M: 32 },
+  { f: "CO₂", n: "углекислого газа", nom: "углекислый газ", M: 44 }, { f: "Ar", n: "аргона", nom: "аргон", M: 40 }
+];
+const tK = t => t + 273;
+const GEN = [
+  { topic: "base", title: "Число молекул", make() {
+    const s = pick(SUBST), nu = pick([0.5, 1, 1.5, 2, 2.5, 3, 4, 5]), m = +(s.M * nu).toFixed(1), N = nu * NA;
+    return { cond: `Сколько молекул содержится в ${fmt(m)} г ${s.n} (${s.f})?`, answer: N, unit: "молекул",
+      hint: "Найди молярную массу (H = 1, C = 12, N = 14, O = 16), затем ν = m / M и N = ν·Nₐ.",
+      sol: [`M(${s.f}) = ${s.calc} г/моль`, `ν = m / M = ${fmt(m)} / ${s.M} = ${fmt(nu)} моль`, `N = ν·Nₐ = ${fmt(nu)} · 6,02·10²³ ≈ <b>${sci(N)}</b>`] };
+  } },
+  { topic: "base", title: "Масса одной молекулы", make() {
+    const s = pick(SUBST), M = s.M / 1000, m0 = M / NA;
+    return { cond: `Найди массу одной молекулы ${s.n} (${s.f}).`, answer: m0, unit: "кг",
+      hint: "m₀ = M / Nₐ. Молярную массу переведи в кг/моль (H = 1, C = 12, N = 14, O = 16).",
+      sol: [`M(${s.f}) = ${s.calc} г/моль = ${fmt(M)} кг/моль`, `m₀ = M / Nₐ = ${fmt(M)} / 6,02·10²³ ≈ <b>${sci(m0)} кг</b>`] };
+  } },
+  { topic: "base", title: "Энергия молекул", make() {
+    const t = ri(-73, 527, 10), T = tK(t), E = 1.5 * KB * T;
+    return { cond: `Найди среднюю кинетическую энергию молекулы газа при ${fmtT(t)} °C.`, answer: E, unit: "Дж",
+      hint: "E = 3/2 · kT, температура в кельвинах.",
+      sol: [`T = ${fmtT(t)} + 273 = ${T} К`, `E = 1,5 · 1,38·10⁻²³ · ${T} ≈ <b>${sci(E)} Дж</b>`] };
+  } },
+  { topic: "base", title: "Скорость молекул", make() {
+    const g = pick(GASES), t = ri(-23, 327, 10), T = tK(t), M = g.M / 1000, v = Math.sqrt(3 * R * T / M);
+    return { cond: `Найди среднеквадратичную скорость молекул ${g.n} (${g.f}, M = ${g.M} г/моль) при ${fmtT(t)} °C.`, answer: v, unit: "м/с",
+      hint: "v = √(3RT / M): T в кельвинах, M в кг/моль.",
+      sol: [`T = ${T} К, M = ${fmt(M)} кг/моль`, `v = √(3 · 8,31 · ${T} / ${fmt(M)}) ≈ <b>${Math.round(v)} м/с</b>`] };
+  } },
+  { topic: "base", title: "Основное уравнение МКТ", make() {
+    const a = pick([1, 1.5, 2, 2.5, 3, 4]), t = ri(-23, 227, 10), T = tK(t), p = a * 1e25 * KB * T;
+    return { cond: `Концентрация молекул газа n = ${fmt(a)}·10²⁵ м⁻³, температура ${fmtT(t)} °C. Найди давление газа в килопаскалях.`, answer: p / 1000, unit: "кПа",
+      hint: "p = nkT, температура в кельвинах. Ответ в Па раздели на 1000.",
+      sol: [`T = ${T} К`, `p = nkT = ${fmt(a)}·10²⁵ · 1,38·10⁻²³ · ${T} ≈ ${sci(p)} Па ≈ <b>${fmt(p / 1000)} кПа</b>`] };
+  } },
+  { topic: "laws", title: "Менделеев–Клапейрон", make() {
+    const g = pick(GASES), V = pick([10, 20, 40, 50]), P = pick([0.5, 1, 1.5, 2, 2.5, 3]), t = ri(-13, 47, 10), T = tK(t);
+    const M = g.M / 1000, m = P * 1e6 * (V / 1000) * M / (R * T);
+    return { cond: `В баллоне объёмом ${V} л находится ${g.nom} (${g.f}, M = ${g.M} г/моль) под давлением ${fmt(P)} МПа при ${fmtT(t)} °C. Найди массу газа в килограммах.`,
+      answer: m, unit: "кг",
+      hint: "m = pVM / (RT). Всё в СИ: литры в м³, МПа в Па, г/моль в кг/моль, °C в К.",
+      sol: [`V = ${fmt(V / 1000)} м³, p = ${fmt(P)}·10⁶ Па, T = ${T} К, M = ${fmt(M)} кг/моль`,
+        `m = pVM / (RT) = ${fmt(P)}·10⁶ · ${fmt(V / 1000)} · ${fmt(M)} / (8,31 · ${T}) ≈ <b>${fmt(m)} кг</b>`] };
+  } },
+  { topic: "laws", title: "Изохорный процесс", make() {
+    const t1 = ri(-23, 47, 10), t2 = t1 + ri(30, 200, 10), T1 = tK(t1), T2 = tK(t2), p1 = pick([100, 150, 200, 250, 300]), p2 = p1 * T2 / T1;
+    return { cond: `Газ в закрытом баллоне нагрели с ${fmtT(t1)} °C до ${fmtT(t2)} °C. Начальное давление ${p1} кПа. Каким стало давление?`, answer: p2, unit: "кПа",
+      hint: "V = const, значит p₁/T₁ = p₂/T₂. Температуры в кельвинах!",
+      sol: [`T₁ = ${T1} К, T₂ = ${T2} К`, `p₂ = p₁ · T₂ / T₁ = ${p1} · ${T2} / ${T1} ≈ <b>${fmt(p2)} кПа</b>`] };
+  } },
+  { topic: "laws", title: "Изотермический процесс", make() {
+    let V1 = ri(2, 12), V2 = ri(1, 12);
+    while (V2 === V1) V2 = ri(1, 12);
+    const p1 = pick([50, 100, 150, 200]), p2 = p1 * V1 / V2;
+    return { cond: `Газ медленно ${V2 < V1 ? "сжали" : "расширили"} с ${V1} л до ${V2} л при постоянной температуре. Начальное давление ${p1} кПа. Каким стало давление?`, answer: p2, unit: "кПа",
+      hint: "T = const, значит p₁V₁ = p₂V₂. Литры сократятся.",
+      sol: [`p₂ = p₁ · V₁ / V₂ = ${p1} · ${V1} / ${V2} ≈ <b>${fmt(p2)} кПа</b>`] };
+  } },
+  { topic: "laws", title: "Изобарный процесс", make() {
+    const V1 = ri(2, 8), t1 = ri(-23, 47, 10), t2 = t1 + ri(30, 200, 10), T1 = tK(t1), T2 = tK(t2), V2 = V1 * T2 / T1;
+    return { cond: `Газ при ${fmtT(t1)} °C занимает объём ${V1} л. Его нагрели при постоянном давлении до ${fmtT(t2)} °C. Каким стал объём?`, answer: V2, unit: "л",
+      hint: "p = const, значит V₁/T₁ = V₂/T₂. Температуры в кельвинах.",
+      sol: [`T₁ = ${T1} К, T₂ = ${T2} К`, `V₂ = V₁ · T₂ / T₁ = ${V1} · ${T2} / ${T1} ≈ <b>${fmt(V2)} л</b>`] };
+  } },
+  { topic: "laws", title: "Изобарный процесс: температура", make() {
+    const k = pick([1.2, 1.5, 2, 2.5, 3]), t1 = ri(-33, 57, 10), T1 = tK(t1), T2 = T1 * k;
+    return { cond: `При постоянном давлении объём газа увеличился в ${fmt(k)} раза. Начальная температура ${fmtT(t1)} °C. Какой стала температура (в кельвинах)?`, answer: T2, unit: "К",
+      hint: "V₂/V₁ = T₂/T₁: температура в кельвинах выросла во столько же раз.",
+      sol: [`T₁ = ${T1} К`, `T₂ = T₁ · ${fmt(k)} = <b>${fmt(T2)} К</b>`, "Умножать можно только кельвины, не градусы Цельсия."] };
+  } },
+  { topic: "graph", title: "Какой это процесс?", make() {
+    // Что постоянно (T, p или V) и в каких осях график
+    const SHAPES = { T: { pV: "hyper", pT: "vert", VT: "vert" }, p: { pV: "horiz", pT: "horiz", VT: "line0" }, V: { pV: "vert", pT: "line0", VT: "horiz" } };
+    const proc = pick(["T", "p", "V"]), ax = pick(["pV", "pT", "VT"]), shape = SHAPES[proc][ax];
+    const [xv, yv] = AX[ax], name = `${yv}(${xv})`;
+    const why = { line0: `Прямая через начало координат: ${yv} ~ ${xv}. Постоянной остаётся величина, которой нет на осях.`,
+      horiz: `Горизонтальная линия: величина ${yv} на вертикальной оси не меняется.`,
+      vert: `Вертикальная линия: величина ${xv} на горизонтальной оси не меняется.`,
+      hyper: "Гипербола: произведение p·V постоянно." }[shape];
+    const res = { T: "изотермический процесс (T = const)", p: "изобарный процесс (p = const)", V: "изохорный процесс (V = const)" }[proc];
+    return { cond: `На графике в осях ${name} показан процесс с газом постоянной массы. Какой это процесс?`,
+      svg: () => graphSVG(ax, shape), options: PROC_OPTS, correct: { T: 0, p: 1, V: 2 }[proc],
+      hint: "Посмотри на форму линии: прямая через ноль, горизонталь, вертикаль или гипербола?",
+      sol: [why, `Значит, это <b>${res}</b>.`] };
+  } },
+  { topic: "graph", title: "Найди по графику", make() {
+    const isoV = Math.random() < 0.5, TA = pick([200, 300, 400]), f = pick([1.5, 2]), TB = TA * f;
+    const YA = isoV ? pick([100, 150, 200]) : pick([1, 2, 3, 4]), YB = YA * f;
+    const q = isoV ? "давление" : "объём", u = isoV ? "кПа" : "л", sym = isoV ? "p" : "V";
+    return { cond: `На графике показана зависимость ${isoV ? "давления" : "объёма"} газа от температуры (${isoV ? "объём" : "давление"} постоянно). В точке A: T = ${TA} К, ${sym} = ${YA} ${u}. Найди ${q} в точке B.`,
+      svg: () => pointSVG("T, К", `${sym}, ${u}`, TA, TB, YA), answer: YB, unit: u,
+      hint: `Прямая через начало координат: ${sym} ~ T. Найди T в точке B по графику.`,
+      sol: [`По графику в точке B: T = ${TB} К.`, `${sym}(B) = ${sym}(A) · T(B) / T(A) = ${YA} · ${TB} / ${TA} = <b>${fmt(YB)} ${u}</b>`] };
+  } }
+];
+function genTask(i) { const g = GEN[i]; return Object.assign({ topic: g.topic, title: g.title, gen: i }, g.make()); }
 
 // ================= Сохранение прогресса =================
-// state.stars — сколько звёзд получено за каждую решённую задачу
 const KEY = "mkt-v2";
+function load(key, def) { try { const v = JSON.parse(localStorage.getItem(key) || "null"); return v ? Object.assign(def, v) : def; } catch (e) { return def; } }
+function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
 function loadState() {
-  const empty = { stars: {}, streak: 0, best: 0 };
+  const st = load(KEY, { stars: {}, streak: 0, best: 0 });
+  // Перенос прогресса со старой версии страницы: решённые задачи получают 3 звезды
   try {
-    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
-    if (saved && saved.stars) return Object.assign(empty, saved);
-    // Перенос прогресса со старой версии страницы: решённые задачи получают 3 звезды
-    const old = JSON.parse(localStorage.getItem("mkt-solved") || "[]");
-    old.forEach(i => { empty.stars[i] = 3; });
+    if (!localStorage.getItem(KEY)) JSON.parse(localStorage.getItem("mkt-solved") || "[]").forEach(i => { st.stars[i] = 3; });
   } catch (e) {}
-  return empty;
+  return st;
 }
-function saveState() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 const state = loadState();
+const saveState = () => save(KEY, state);
 
-// То, что не сохраняем: ошибки и подсказки в текущем заходе
 const wrong = {}, usedHint = {}, usedSol = {};
-
 const MAX_STARS = TASKS.length * 3;
 const RANKS = [
   [0, "Молекула"], [6, "Броуновская частица"], [13, "Идеальный газ"],
@@ -501,12 +752,7 @@ const RANKS = [
 ];
 const totalStars = () => Object.values(state.stars).reduce((a, b) => a + b, 0);
 const solvedCount = () => Object.keys(state.stars).length;
-function rankFor(stars) {
-  let k = 0;
-  RANKS.forEach((r, i) => { if (stars >= r[0]) k = i; });
-  return k;
-}
-// Сколько звёзд ещё можно получить за нерешённую задачу
+function rankFor(stars) { let k = 0; RANKS.forEach((r, i) => { if (stars >= r[0]) k = i; }); return k; }
 function potential(i) {
   if (usedSol[i]) return 1;
   let s = 3;
@@ -517,36 +763,32 @@ function potential(i) {
 
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 function vibrate(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+const $ = id => document.getElementById(id);
 
 // ================= Шапка и прогресс =================
 function updateHeader() {
   const st = totalStars(), n = solvedCount();
-  document.getElementById("stStars").textContent = st;
-  document.getElementById("stStreak").textContent = state.streak;
-  document.getElementById("stBest").textContent = state.best;
-  document.getElementById("stickyStars").textContent = "★ " + st;
-  document.getElementById("barFill").style.width = (n / TASKS.length * 100) + "%";
-  document.getElementById("progressText").textContent =
-    n === TASKS.length ? "Все " + TASKS.length + " решены!" : "Решено " + n + " из " + TASKS.length;
-  const k = rankFor(st);
-  document.getElementById("rankName").textContent = RANKS[k][1];
-  const next = RANKS[k + 1];
-  document.getElementById("rankNext").textContent = next ? "до «" + next[1] + "»: " + (next[0] - st) + " ★" : "высшее звание";
-  document.getElementById("rankFill").style.width =
-    (next ? (st - RANKS[k][0]) / (next[0] - RANKS[k][0]) * 100 : 100) + "%";
+  $("stStars").textContent = st;
+  $("stStreak").textContent = state.streak;
+  $("stBest").textContent = state.best;
+  $("stickyStars").textContent = "★ " + st;
+  $("barFill").style.width = (n / TASKS.length * 100) + "%";
+  $("progressText").textContent = n === TASKS.length ? "Все " + TASKS.length + " решены!" : "Решено " + n + " из " + TASKS.length;
+  const k = rankFor(st), next = RANKS[k + 1];
+  $("rankName").textContent = RANKS[k][1];
+  $("rankNext").textContent = next ? "до «" + next[1] + "»: " + (next[0] - st) + " ★" : "высшее звание";
+  $("rankFill").style.width = (next ? (st - RANKS[k][0]) / (next[0] - RANKS[k][0]) * 100 : 100) + "%";
 }
 
-// ================= Всплывающие сообщения =================
+// ================= Всплывающие сообщения и конфетти =================
 function toast(text) {
   const t = document.createElement("div");
   t.className = "toast"; t.textContent = text;
-  document.getElementById("toasts").appendChild(t);
+  $("toasts").appendChild(t);
   setTimeout(() => t.classList.add("out"), 2300);
   setTimeout(() => t.remove(), 2800);
 }
-
-// ================= Конфетти =================
-const cf = document.getElementById("confetti"), cx = cf.getContext("2d");
+const cf = $("confetti"), cx = cf.getContext("2d");
 let parts = [], cfRunning = false;
 const CF_COLORS = ["#6a5cff", "#2f8cff", "#19c3b1", "#f5a524", "#ff4d6d", "#a3e635"];
 function sizeConfetti() {
@@ -557,14 +799,13 @@ function sizeConfetti() {
 function burst(x, y, n = 70) {
   if (reduced) return;
   for (let k = 0; k < n; k++) {
-    parts.push({
-      x, y, vx: (Math.random() - .5) * 10, vy: -Math.random() * 10 - 3,
+    parts.push({ x, y, vx: (Math.random() - .5) * 10, vy: -Math.random() * 10 - 3,
       s: 5 + Math.random() * 6, r: Math.random() * 6, vr: (Math.random() - .5) * .4,
-      c: CF_COLORS[k % CF_COLORS.length], life: 80 + Math.random() * 50
-    });
+      c: CF_COLORS[k % CF_COLORS.length], life: 80 + Math.random() * 50 });
   }
   if (!cfRunning) { cfRunning = true; requestAnimationFrame(cfTick); }
 }
+function burstAt(el, n) { const r = el.getBoundingClientRect(); burst(r.left + r.width / 2, Math.max(40, r.top + 40), n); }
 function cfTick() {
   cx.clearRect(0, 0, innerWidth, innerHeight);
   parts.forEach(p => {
@@ -579,132 +820,120 @@ function cfTick() {
 }
 addEventListener("resize", sizeConfetti);
 sizeConfetti();
+function shake(el) { el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); }
 
-// ================= Карточки задач =================
-const box = document.getElementById("tasks");
-const cards = [];
-
-function renderStars(i, pop) {
-  const el = cards[i].querySelector(".stars");
-  const earned = state.stars[i];
-  const n = earned !== undefined ? earned : potential(i);
-  el.innerHTML = [0, 1, 2].map(k =>
-    `<span class="${k < n ? (earned !== undefined ? "on" : "pot") : "off"}">★</span>`).join("");
-  el.classList.remove("pop");
-  if (pop) { void el.offsetWidth; el.classList.add("pop"); }
-}
-
-function onCorrect(i, el, msg) {
-  msg.className = "msg ok";
-  if (state.stars[i] !== undefined) { msg.textContent = "Верно! (уже решено раньше)"; return; }
-  const rankBefore = rankFor(totalStars());
-  const got = potential(i);
-  state.stars[i] = got;
-  state.streak++;
-  state.best = Math.max(state.best, state.streak);
-  saveState();
-  msg.textContent = ["", "Верно! +1 ★", "Верно! +2 ★", "Отлично! +3 ★"][got];
-  el.classList.add("solved");
-  renderStars(i, true);
-  updateHeader();
-  vibrate([20, 40, 20]);
-  const r = el.getBoundingClientRect();
-  burst(r.left + r.width / 2, r.top + 40, got === 3 ? 90 : 50);
-  if ([3, 5, 8, 13].includes(state.streak)) toast("Серия " + state.streak + " подряд! Горячо, как газ при 1000 К");
-  const rankAfter = rankFor(totalStars());
-  if (rankAfter > rankBefore) setTimeout(() => toast("Новое звание: " + RANKS[rankAfter][1]), 600);
-  if (solvedCount() === TASKS.length) setTimeout(showFinal, 1200);
-  applyFilter();
-}
-
-function onWrong(i, el, msg, text) {
-  msg.className = "msg bad";
-  msg.textContent = text;
-  if (state.stars[i] === undefined) wrong[i] = (wrong[i] || 0) + 1;
-  if (state.streak) { state.streak = 0; saveState(); updateHeader(); }
-  renderStars(i);
-  vibrate(90);
-  el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
-}
-
-TASKS.forEach((t, i) => {
-  const el = document.createElement("section");
-  el.className = "card task " + t.topic + (state.stars[i] !== undefined ? " solved" : "");
-  el.style.animationDelay = Math.min(i, 6) * 0.05 + "s";
-  el.dataset.topic = t.topic;
-  el.innerHTML = `
-    <div class="task-top"><span class="tag">${TOPICS[t.topic]}</span><span class="stars"></span></div>
-    <h2>${i + 1}. ${t.title}</h2>
-    <p class="cond">${t.cond}</p>
-    ${t.graph ? `<div class="graph"><svg viewBox="0 0 260 175" role="img" aria-label="График">${GRAPHS[t.graph]()}</svg></div>` : ""}
+// ================= Карточка задачи (общая для всех вкладок) =================
+// Тело задачи: условие, график, поле ответа или варианты
+function taskBody(t) {
+  return `<p class="cond">${t.cond}</p>
+    ${t.svg ? `<div class="graph">${t.svg()}</div>` : ""}
     ${t.options
       ? `<div class="opts">${t.options.map((o, k) => `<button type="button" data-k="${k}">${o}</button>`).join("")}</div>`
-      : `<div class="row">
-      <input type="text" inputmode="text" autocomplete="off" placeholder="Твой ответ">
-      <span class="unit">${t.unit}</span>
-    </div>
-    <p class="fmt">Можно писать так: 5,3e-26 или 5,3·10^-26</p>`}
+      : `<div class="row"><input type="text" inputmode="text" autocomplete="off" placeholder="Твой ответ"><span class="unit">${t.unit}</span></div>
+         <p class="fmt">Можно писать так: 5,3e-26 или 5,3·10^-26</p>`}`;
+}
+const solHTML = t => t.sol.map(p => "<p>" + p + "</p>").join("");
+
+// Карточка с проверкой, подсказкой и решением. cb: onCorrect, onWrong, onHint, onSol, extraBtn
+function buildCard(t, num, cb, headRight = "") {
+  const el = document.createElement("section");
+  el.className = "card task " + t.topic;
+  el.dataset.topic = t.topic;
+  el.innerHTML = `
+    <div class="task-top"><span class="tag">${TOPICS[t.topic]}</span>${headRight}</div>
+    <h2>${num ? num + ". " : ""}${t.title}</h2>
+    ${taskBody(t)}
     <div class="btns">
       ${t.options ? "" : `<button type="button" class="main" data-a="check">Проверить</button>`}
-      <button type="button" data-a="hint">Подсказка <small>−1★</small></button>
+      <button type="button" data-a="hint">Подсказка${cb.hintCost ? " <small>−1★</small>" : ""}</button>
       <button type="button" data-a="sol">Решение</button>
+      ${cb.extraBtn || ""}
     </div>
     <div class="msg"></div>
     <div class="hint">${t.hint}</div>
-    <div class="sol">${t.sol.map(p => "<p>" + p + "</p>").join("")}</div>`;
-  cards.push(el);
-  const input = el.querySelector("input");
-  const msg = el.querySelector(".msg");
-
-  function check() {
-    const v = parseAnswer(input.value);
-    if (isNaN(v)) {
-      msg.className = "msg bad";
-      msg.textContent = "Не понял число. Пример записи: 5,3e-26";
-      return;
-    }
-    const diff = Math.abs(v - t.answer) / Math.abs(t.answer);
-    if (diff <= 0.03) { onCorrect(i, el, msg); return; }
-    // Подсказываем, если ошибка в степени десятки (частая ошибка с единицами)
-    const ratio = Math.log10(Math.abs(v / t.answer));
-    onWrong(i, el, msg, Math.abs(ratio - Math.round(ratio)) < 0.02 && Math.round(ratio) !== 0
-      ? "Почти: цифры верные, но ошибка в степени десяти. Проверь перевод единиц."
-      : "Пока неверно. Попробуй ещё или открой подсказку.");
-  }
-
+    <div class="sol">${solHTML(t)}</div>`;
+  const input = el.querySelector("input"), msg = el.querySelector(".msg");
+  const good = () => { msg.className = "msg ok"; cb.onCorrect(el, msg); };
+  const bad = text => { msg.className = "msg bad"; msg.textContent = text; vibrate(90); shake(el); cb.onWrong(el, msg); };
   if (t.options) {
-    // Задача с вариантами: нажатие на вариант сразу проверяет его
     el.querySelectorAll(".opts button").forEach(b => {
       b.onclick = () => {
         if (+b.dataset.k === t.correct) {
           el.querySelectorAll(".opts button").forEach(x => x.classList.remove("wrong"));
-          b.classList.add("right");
-          onCorrect(i, el, msg);
-        } else {
-          b.classList.add("wrong");
-          onWrong(i, el, msg, "Нет, попробуй другой вариант или открой подсказку.");
-        }
+          b.classList.add("right"); good();
+        } else { b.classList.add("wrong"); bad("Нет, попробуй другой вариант или открой подсказку."); }
       };
     });
   } else {
+    const check = () => {
+      const r = checkNumber(t, input.value);
+      if (r.ok) good();
+      else if (r.bad) { msg.className = "msg bad"; msg.textContent = r.text; }
+      else bad(r.text);
+    };
     el.querySelector('[data-a="check"]').onclick = check;
     input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
   }
   el.querySelector('[data-a="hint"]').onclick = () => {
     const h = el.querySelector(".hint");
     h.classList.toggle("show");
-    if (h.classList.contains("show") && state.stars[i] === undefined) { usedHint[i] = true; renderStars(i); }
+    if (h.classList.contains("show") && cb.onHint) cb.onHint();
   };
   el.querySelector('[data-a="sol"]').onclick = () => {
     const s = el.querySelector(".sol");
     s.classList.toggle("show");
-    if (s.classList.contains("show") && state.stars[i] === undefined) { usedSol[i] = true; renderStars(i); }
+    if (s.classList.contains("show") && cb.onSol) cb.onSol();
   };
-  box.appendChild(el);
+  return el;
+}
+
+// ================= Вкладка «Задачи»: 13 задач со звёздами =================
+const cards = [];
+function renderStars(i, pop) {
+  const el = cards[i].querySelector(".stars");
+  const earned = state.stars[i];
+  const n = earned !== undefined ? earned : potential(i);
+  el.innerHTML = [0, 1, 2].map(k => `<span class="${k < n ? (earned !== undefined ? "on" : "pot") : "off"}">★</span>`).join("");
+  el.classList.remove("pop");
+  if (pop) { void el.offsetWidth; el.classList.add("pop"); }
+}
+TASKS.forEach((t, i) => {
+  const el = buildCard(t, i + 1, {
+    hintCost: true,
+    onCorrect(el, msg) {
+      if (state.stars[i] !== undefined) { msg.textContent = "Верно! (уже решено раньше)"; return; }
+      const rankBefore = rankFor(totalStars()), got = potential(i);
+      state.stars[i] = got;
+      state.streak++;
+      state.best = Math.max(state.best, state.streak);
+      saveState();
+      msg.textContent = ["", "Верно! +1 ★", "Верно! +2 ★", "Отлично! +3 ★"][got];
+      el.classList.add("solved");
+      renderStars(i, true);
+      updateHeader();
+      vibrate([20, 40, 20]);
+      burstAt(el, got === 3 ? 90 : 50);
+      if ([3, 5, 8, 13].includes(state.streak)) toast("Серия " + state.streak + " подряд! Горячо, как газ при 1000 К");
+      const rankAfter = rankFor(totalStars());
+      if (rankAfter > rankBefore) setTimeout(() => toast("Новое звание: " + RANKS[rankAfter][1]), 600);
+      if (solvedCount() === TASKS.length) setTimeout(showFinal, 1200);
+      applyFilter();
+    },
+    onWrong() {
+      if (state.stars[i] === undefined) wrong[i] = (wrong[i] || 0) + 1;
+      if (state.streak) { state.streak = 0; saveState(); updateHeader(); }
+      renderStars(i);
+    },
+    onHint() { if (state.stars[i] === undefined) { usedHint[i] = true; renderStars(i); } },
+    onSol() { if (state.stars[i] === undefined) { usedSol[i] = true; renderStars(i); } }
+  }, `<span class="stars"></span>`);
+  if (state.stars[i] !== undefined) el.classList.add("solved");
+  el.style.animationDelay = Math.min(i, 6) * 0.05 + "s";
+  cards.push(el);
+  $("tasks").appendChild(el);
   renderStars(i);
 });
 
-// ================= Фильтр по темам =================
 let filter = "all";
 function applyFilter() {
   cards.forEach((el, i) => {
@@ -712,79 +941,248 @@ function applyFilter() {
     el.classList.toggle("hidden", !show);
   });
 }
-document.getElementById("filters").addEventListener("click", e => {
+$("filters").addEventListener("click", e => {
   const b = e.target.closest(".chip"); if (!b) return;
   filter = b.dataset.f;
-  document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
+  $("filters").querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
   applyFilter();
 });
 
-// ================= Финальное окно и сброс =================
 function showFinal() {
   const st = totalStars();
-  document.getElementById("mStars").textContent = "★ " + st + " из " + MAX_STARS;
-  document.getElementById("mRank").textContent = "Твоё звание: " + RANKS[rankFor(st)][1];
-  document.getElementById("mBest").textContent = "Лучшая серия: " + state.best + " подряд";
-  document.getElementById("modal").classList.add("show");
+  $("mStars").textContent = "★ " + st + " из " + MAX_STARS;
+  $("mRank").textContent = "Твоё звание: " + RANKS[rankFor(st)][1];
+  $("mBest").textContent = "Лучшая серия: " + state.best + " подряд";
+  $("modal").classList.add("show");
   burst(innerWidth / 2, innerHeight / 3, 160);
 }
 function resetAll() {
   try { localStorage.removeItem(KEY); localStorage.removeItem("mkt-solved"); } catch (e) {}
   location.reload();
 }
-document.getElementById("mClose").onclick = () => document.getElementById("modal").classList.remove("show");
-document.getElementById("mAgain").onclick = resetAll;
-document.getElementById("reset").onclick = () => { if (confirm("Сбросить все звёзды и начать заново?")) resetAll(); };
-
+$("mClose").onclick = () => $("modal").classList.remove("show");
+$("mAgain").onclick = resetAll;
+$("reset").onclick = () => { if (confirm("Сбросить все звёзды и начать заново?")) resetAll(); };
 updateHeader();
 
-// ================= Симулятор газа =================
+// ================= Вкладка «Тренажёр» =================
+const TR_KEY = "mkt-train";
+const tr = load(TR_KEY, { ok: 0, total: 0, streak: 0 });
+let trTopic = "all", trLast = -1;
+function trStats() {
+  $("trOk").textContent = tr.ok; $("trTotal").textContent = tr.total; $("trStreak").textContent = tr.streak;
+  $("trRow").textContent = tr.ok + " из " + tr.total;
+}
+function nextTrain() {
+  // Случайный тип задачи из выбранной темы, не тот же, что был только что
+  let ids = GEN.map((g, i) => i).filter(i => trTopic === "all" || GEN[i].topic === trTopic);
+  if (ids.length > 1) ids = ids.filter(i => i !== trLast);
+  const gi = pick(ids); trLast = gi;
+  const t = genTask(gi);
+  let wrongOnce = false, sawSol = false, done = false;
+  const el = buildCard(t, 0, {
+    extraBtn: `<button type="button" class="next" data-a="next">Дальше →</button>`,
+    onCorrect(el, msg) {
+      if (done) { msg.textContent = "Верно!"; return; }
+      done = true;
+      const clean = !wrongOnce && !sawSol;
+      tr.total++;
+      if (clean) { tr.ok++; tr.streak++; } else tr.streak = 0;
+      save(TR_KEY, tr); trStats();
+      msg.textContent = clean ? "Верно с первого раза!" : "Верно!";
+      el.classList.add("solved");
+      el.querySelector('[data-a="next"]').classList.add("ready");
+      vibrate([20, 40, 20]);
+      burstAt(el, clean ? 60 : 30);
+      if (clean && [5, 10, 20, 30, 50].includes(tr.streak)) toast("Серия " + tr.streak + " в тренажёре!");
+    },
+    onWrong() { if (!done) { wrongOnce = true; if (tr.streak) { tr.streak = 0; save(TR_KEY, tr); trStats(); } } },
+    onSol() { sawSol = true; }
+  });
+  el.querySelector('[data-a="next"]').onclick = () => { nextTrain(); $("trainBox").scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" }); };
+  $("trainBox").replaceChildren(el);
+}
+$("trainTopics").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  trTopic = b.dataset.f; trLast = -1;
+  $("trainTopics").querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
+  nextTrain();
+});
+$("trReset").onclick = () => { if (confirm("Обнулить счёт тренажёра?")) { tr.ok = tr.total = tr.streak = 0; save(TR_KEY, tr); trStats(); } };
+trStats();
+nextTrain();
+
+// ================= Вкладка «Контрольная» =================
+const EX_KEY = "mkt-exam-best", EX_N = 10, EX_SEC = 20 * 60;
+const exBest = load(EX_KEY, { grade: 0, correct: 0, sec: 0, date: "" });
+let ex = null;   // текущая контрольная: { tasks, els, left, timer, start }
+const mmss = s => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+function showBest() {
+  $("examBest").textContent = exBest.grade
+    ? `Лучший результат: «${exBest.grade}», верно ${exBest.correct} из ${EX_N} за ${mmss(exBest.sec)} (${exBest.date}).`
+    : "Ты ещё не писал контрольную. Удачи!";
+}
+const gradeFor = c => c >= 9 ? 5 : c >= 7 ? 4 : c >= 5 ? 3 : 2;
+function examAnswered(i) {
+  const el = ex.els[i], t = ex.tasks[i];
+  return t.options ? el.querySelector(".opts .sel") !== null : el.querySelector("input").value.trim() !== "";
+}
+function examCount() { let n = 0; ex.tasks.forEach((t, i) => { if (examAnswered(i)) n++; }); $("exAns").textContent = n; return n; }
+function startExam() {
+  // 10 разных типов задач из 13, по порядку тем
+  const ids = shuffle(GEN.map((g, i) => i)).slice(0, EX_N).sort((a, b) => a - b);
+  const tasks = ids.map(genTask);
+  const els = tasks.map((t, i) => {
+    const el = document.createElement("section");
+    el.className = "card task " + t.topic;
+    el.innerHTML = `<div class="task-top"><span class="tag">${TOPICS[t.topic]}</span><span class="muted" style="margin:0">${i + 1} из ${EX_N}</span></div>
+      <h2>${i + 1}. ${t.title}</h2>${taskBody(t)}`;
+    el.querySelectorAll(".opts button").forEach(b => b.onclick = () => {
+      el.querySelectorAll(".opts button").forEach(x => x.classList.toggle("sel", x === b)); examCount();
+    });
+    const inp = el.querySelector("input");
+    if (inp) inp.addEventListener("input", examCount);
+    return el;
+  });
+  ex = { tasks, els, left: EX_SEC, start: Date.now() };
+  $("examList").replaceChildren(...els);
+  $("examStart").hidden = true; $("examResult").hidden = true; $("examRun").hidden = false;
+  examCount();
+  tickExam();
+  ex.timer = setInterval(tickExam, 1000);
+  showRows();
+  scrollTop();
+}
+function tickExam() {
+  ex.left = EX_SEC - Math.floor((Date.now() - ex.start) / 1000);
+  if (ex.left <= 0) { ex.left = 0; $("exTime").textContent = "00:00"; finishExam(true); return; }
+  $("exTime").textContent = mmss(ex.left);
+  $("rowExam").classList.toggle("late", ex.left <= 60);
+}
+function finishExam(timeout) {
+  clearInterval(ex.timer);
+  const sec = Math.min(EX_SEC, Math.round((Date.now() - ex.start) / 1000));
+  let correct = 0;
+  const review = ex.tasks.map((t, i) => {
+    const el = ex.els[i];
+    let ok = false, yours = "нет ответа";
+    if (t.options) {
+      const s = el.querySelector(".opts .sel");
+      if (s) { yours = t.options[+s.dataset.k]; ok = +s.dataset.k === t.correct; }
+    } else {
+      const raw = el.querySelector("input").value.trim();
+      if (raw) { yours = raw + " " + t.unit; ok = checkNumber(t, raw).ok; }
+    }
+    if (ok) correct++;
+    const right = t.options ? t.options[t.correct] : fmt(t.answer) + " " + t.unit;
+    return `<section class="card rv task ${t.topic}">
+      <div class="rv-top"><span>${i + 1}. ${t.title}</span><span class="${ok ? "rv-ok" : "rv-bad"}">${ok ? "Верно" : "Неверно"}</span></div>
+      <p>${t.cond}</p>
+      ${t.svg ? `<div class="graph">${t.svg()}</div>` : ""}
+      <p>Твой ответ: <b>${yours}</b></p>
+      ${ok ? "" : `<p>Правильный ответ: <b>${right}</b></p>`}
+      <details ${ok ? "" : "open"}><summary>Решение</summary><div class="sol">${solHTML(t)}</div></details>
+    </section>`;
+  });
+  const grade = gradeFor(correct);
+  const better = grade > exBest.grade || (grade === exBest.grade && (correct > exBest.correct || (correct === exBest.correct && sec < exBest.sec)));
+  if (better) { Object.assign(exBest, { grade, correct, sec, date: new Date().toLocaleDateString("ru-RU") }); save(EX_KEY, exBest); }
+  const words = { 5: "Отлично!", 4: "Хорошо!", 3: "Удовлетворительно", 2: "Надо потренироваться" }[grade];
+  $("examResult").innerHTML = `
+    <section class="card result-head">
+      <p class="muted" style="margin:0">${timeout ? "Время вышло. " : ""}Оценка</p>
+      <div class="grade">${grade}</div>
+      <h2>${words}</h2>
+      <p class="muted">Верно ${correct} из ${EX_N}, время ${mmss(sec)}${better ? ". Новый лучший результат!" : ""}</p>
+      <div class="btns" style="justify-content:center">
+        <button type="button" class="main" id="exAgain">Ещё раз</button>
+        <button type="button" id="exTrain">В тренажёр</button>
+      </div>
+    </section>
+    <h2 style="margin:18px 4px 0">Разбор</h2>
+    ${review.join("")}`;
+  $("examRun").hidden = true; $("examResult").hidden = false;
+  ex = null;
+  showRows();
+  scrollTop();
+  $("exAgain").onclick = startExam;
+  $("exTrain").onclick = () => setView("train");
+  if (grade === 5) setTimeout(() => burst(innerWidth / 2, innerHeight / 3, 160), 300);
+  if (timeout) toast("Время вышло, работа сдана");
+  showBest();
+}
+$("examGo").onclick = startExam;
+$("examSubmit").onclick = () => {
+  const left = EX_N - examCount();
+  if (left > 0 && !confirm(`Без ответа задач: ${left}. Всё равно сдать работу?`)) return;
+  finishExam(false);
+};
+showBest();
+
+// ================= Переключение вкладок =================
+let view = "tasks";
+function showRows() {
+  $("rowTasks").hidden = view !== "tasks";
+  $("rowTrain").hidden = view !== "train";
+  $("rowExam").hidden = !(view === "exam" && ex);
+}
+function scrollTop() {
+  const top = document.querySelector(".hero").offsetHeight;
+  if (scrollY > top) scrollTo({ top, behavior: "auto" });
+}
+function setView(v) {
+  view = v;
+  ["tasks", "train", "exam"].forEach(k => { $("view-" + k).hidden = k !== v; });
+  $("tabs").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  showRows();
+  scrollTop();
+  try { history.replaceState(null, "", v === "tasks" ? location.pathname : "#" + v); } catch (e) {}
+}
+$("tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setView(b.dataset.v); });
+if (["#train", "#exam"].includes(location.hash)) setView(location.hash.slice(1));
+
+// ================= Симулятор газа и живой график =================
 // Молекулы летают в сосуде с поршнем. Давление считаем по ударам о стенки:
 // каждый удар передаёт импульс 2·m·v, сумма импульсов за время на длину стенок и есть давление.
 (function gasSim() {
-  const cv = document.getElementById("simCanvas"), g = cv.getContext("2d");
+  const cv = $("simCanvas"), g = cv.getContext("2d");
   const sim = { T: 300, V: 2, N: 60 };
-  const R = 3.5, VMAX = 3;            // радиус молекулы в пикселях и максимальный объём
+  const RAD = 3.5, VMAX = 3;
   let W = 300, H = 200, mols = [];
   let imp = 0, tAcc = 0, pShown = 100, running = false, last = 0;
 
-  const vrms = T => 110 * Math.sqrt(T / 300);      // типичная скорость в пикселях в секунду
+  const vrms = T => 110 * Math.sqrt(T / 300);
   const pistonX = () => W * sim.V / VMAX;
-  // Давление по формуле p ~ N·T / V, при N=60, T=300 К, V=2 л это 100 кПа
+  // Давление по формуле p ~ N·T / V: при N = 60, T = 300 К, V = 2 л это 100 кПа
   const pTheory = () => 100 * (sim.N / 60) * (sim.T / 300) * (2 / sim.V);
 
   function newMol() {
-    // Скорость по распределению, похожему на распределение Максвелла (в 2D)
     const sigma = vrms(sim.T) / Math.SQRT2;
     const v = sigma * Math.sqrt(-2 * Math.log(1 - Math.random()));
     const a = Math.random() * Math.PI * 2;
-    return { x: R + Math.random() * (pistonX() - 2 * R), y: R + Math.random() * (H - 2 * R), vx: v * Math.cos(a), vy: v * Math.sin(a) };
+    return { x: RAD + Math.random() * (pistonX() - 2 * RAD), y: RAD + Math.random() * (H - 2 * RAD), vx: v * Math.cos(a), vy: v * Math.sin(a) };
   }
   function resize() {
     const d = devicePixelRatio || 1;
-    W = cv.clientWidth; H = cv.clientHeight;
+    W = cv.clientWidth || W; H = cv.clientHeight || H;
     cv.width = W * d; cv.height = H * d;
     g.setTransform(d, 0, 0, d, 0, 0);
-    mols.forEach(m => { m.x = Math.min(m.x, pistonX() - R); m.y = Math.min(m.y, H - R); });
+    mols.forEach(m => { m.x = Math.min(m.x, pistonX() - RAD); m.y = Math.min(m.y, H - RAD); });
   }
-  function setN(n) {
-    while (mols.length < n) mols.push(newMol());
-    mols.length = n;
-  }
+  function setN(n) { while (mols.length < n) mols.push(newMol()); mols.length = n; }
 
   function step(dt) {
     const px = pistonX();
     for (const m of mols) {
       m.x += m.vx * dt; m.y += m.vy * dt;
-      if (m.x < R) { m.x = R; imp += 2 * Math.abs(m.vx); m.vx = Math.abs(m.vx); }
-      if (m.x > px - R) { m.x = px - R; imp += 2 * Math.abs(m.vx); m.vx = -Math.abs(m.vx); }
-      if (m.y < R) { m.y = R; imp += 2 * Math.abs(m.vy); m.vy = Math.abs(m.vy); }
-      if (m.y > H - R) { m.y = H - R; imp += 2 * Math.abs(m.vy); m.vy = -Math.abs(m.vy); }
+      if (m.x < RAD) { m.x = RAD; imp += 2 * Math.abs(m.vx); m.vx = Math.abs(m.vx); }
+      if (m.x > px - RAD) { m.x = px - RAD; imp += 2 * Math.abs(m.vx); m.vx = -Math.abs(m.vx); }
+      if (m.y < RAD) { m.y = RAD; imp += 2 * Math.abs(m.vy); m.vy = Math.abs(m.vy); }
+      if (m.y > H - RAD) { m.y = H - RAD; imp += 2 * Math.abs(m.vy); m.vy = -Math.abs(m.vy); }
     }
     tAcc += dt;
     if (tAcc > 0.5) {
-      // Измеренное давление (по ударам) сравниваем с ожидаемым для такой же средней энергии.
-      // Их отношение около 1, а колебания вокруг 1 — настоящие случайные «толчки» молекул.
+      // Измеренное по ударам давление сравниваем с ожидаемым для той же средней энергии
       const measured = imp / (tAcc * 2 * (px + H));
       const v2 = mols.reduce((s, m) => s + m.vx * m.vx + m.vy * m.vy, 0);
       const expected = v2 / (2 * px * H);
@@ -794,25 +1192,20 @@ updateHeader();
       showGauges();
     }
   }
-
   function draw() {
     const px = pistonX();
     g.clearRect(0, 0, W, H);
-    // Поршень и шток
     const grad = g.createLinearGradient(px, 0, px + 14, 0);
     grad.addColorStop(0, "#8f95a8"); grad.addColorStop(1, "#5d6378");
     g.fillStyle = grad; g.fillRect(px, 0, 14, H);
     g.fillStyle = "#7a8095"; g.fillRect(px + 14, H / 2 - 6, W - px - 14, 12);
-    // Молекулы: цвет от синего (медленные) к красному (быстрые)
     const vRef = vrms(1000) * 1.2;
     for (const m of mols) {
-      const v = Math.hypot(m.vx, m.vy);
-      const hue = 220 - 220 * Math.min(1, v / vRef);
+      const hue = 220 - 220 * Math.min(1, Math.hypot(m.vx, m.vy) / vRef);
       g.fillStyle = `hsl(${hue} 85% 58%)`;
-      g.beginPath(); g.arc(m.x, m.y, R, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(m.x, m.y, RAD, 0, Math.PI * 2); g.fill();
     }
   }
-
   function frame(t) {
     if (!running) return;
     const dt = Math.min(0.033, (t - last) / 1000 || 0.016);
@@ -823,50 +1216,125 @@ updateHeader();
   function start() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); } }
   function stop() { running = false; }
 
-  const fmt = (x, d = 0) => x.toFixed(d).replace(".", ",");
+  const f1 = (x, d = 0) => x.toFixed(d).replace(".", ",");
   function showGauges() {
-    document.getElementById("gP").textContent = fmt(Math.max(0, pShown));
-    document.getElementById("gT").textContent = sim.T;
-    document.getElementById("gV").textContent = fmt(sim.V, 1);
-    // Шкала давления (корень, чтобы и маленькие, и большие значения были заметны)
-    document.getElementById("pFill").style.width = Math.min(100, Math.sqrt(Math.max(0, pShown) / 1700) * 100) + "%";
+    $("gP").textContent = f1(Math.max(0, pShown));
+    $("gT").textContent = sim.T;
+    $("gV").textContent = f1(sim.V, 1);
+    $("pFill").style.width = Math.min(100, Math.sqrt(Math.max(0, pShown) / 1700) * 100) + "%";
   }
-
-  const tip = document.getElementById("simTip");
+  const tip = $("simTip");
   function say(text) { tip.textContent = text; tip.classList.remove("flash"); void tip.offsetWidth; tip.classList.add("flash"); }
 
-  document.getElementById("sT").addEventListener("input", e => {
+  // ---------- Живой график ----------
+  const pc = $("plotCanvas"), pg = pc.getContext("2d");
+  let PW = 300, PH = 190, plotAx = "pV";
+  let trail = [];
+  const cur = () => ({ p: pTheory(), V: sim.V, T: sim.T, N: sim.N });
+  function plotResize() {
+    const d = devicePixelRatio || 1;
+    PW = pc.clientWidth || PW; PH = pc.clientHeight || PH;
+    pc.width = PW * d; pc.height = PH * d;
+    pg.setTransform(d, 0, 0, d, 0, 0);
+  }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function drawPlot() {
+    const [xk, yk] = { pV: ["V", "p"], pT: ["T", "p"], VT: ["T", "V"] }[plotAx];
+    const pts = trail.concat([cur()]);
+    // Масштаб: V до 3,2 л, T до 1050 К, p — по самому большому значению на графике
+    const range = { V: 3.2, T: 1050, p: Math.max(150, ...pts.map(q => q.p)) * 1.2 };
+    const unit = { V: "л", T: "К", p: "кПа" };
+    const L = 34, B = PH - 22, Rr = PW - 12, Tt = 14;
+    const X = v => L + (Rr - L) * v / range[xk], Y = v => B - (B - Tt) * v / range[yk];
+    const text = css("--text"), muted = css("--muted"), acc = css("--accent");
+    pg.clearRect(0, 0, PW, PH);
+    // Оси
+    pg.strokeStyle = text; pg.fillStyle = text; pg.lineWidth = 1.5;
+    pg.beginPath(); pg.moveTo(L, Tt - 6); pg.lineTo(L, B); pg.lineTo(Rr + 6, B); pg.stroke();
+    pg.beginPath(); pg.moveTo(L - 4, Tt); pg.lineTo(L, Tt - 6); pg.lineTo(L + 4, Tt); pg.fill();
+    pg.beginPath(); pg.moveTo(Rr, B - 4); pg.lineTo(Rr + 6, B); pg.lineTo(Rr, B + 4); pg.fill();
+    pg.font = "700 12px Nunito, system-ui, sans-serif";
+    pg.textAlign = "left"; pg.fillText(`${yk}, ${unit[yk]}`, L + 6, Tt + 2);
+    pg.textAlign = "right"; pg.fillText(`${xk}, ${unit[xk]}`, Rr + 4, B - 8);
+    pg.fillStyle = muted; pg.font = "11px Nunito, system-ui, sans-serif";
+    pg.fillText("0", L - 5, B + 14);
+    // Деления на осях
+    const yt = yk === "p" ? [Math.round(range.p / 2.4), Math.round(range.p / 1.2)] : yk === "V" ? [1.5, 3] : [500, 1000];
+    pg.textAlign = "right"; yt.forEach(v => pg.fillText(fmt(v), L - 5, Y(v) + 4));
+    const xt = xk === "V" ? [1, 2, 3] : [500, 1000];
+    pg.textAlign = "center"; xt.forEach(v => pg.fillText(String(v), X(v), B + 14));
+    // След
+    pg.strokeStyle = acc; pg.lineWidth = 2.5; pg.lineJoin = "round";
+    pg.beginPath();
+    pts.forEach((q, k) => { const x = X(q[xk]), y = Y(q[yk]); k ? pg.lineTo(x, y) : pg.moveTo(x, y); });
+    pg.stroke();
+    pg.fillStyle = acc; pg.globalAlpha = .45;
+    pts.forEach(q => { pg.beginPath(); pg.arc(X(q[xk]), Y(q[yk]), 2.2, 0, Math.PI * 2); pg.fill(); });
+    pg.globalAlpha = 1;
+    // Текущая точка
+    const c = pts[pts.length - 1];
+    pg.fillStyle = "#ff4d6d";
+    pg.beginPath(); pg.arc(X(c[xk]), Y(c[yk]), 6, 0, Math.PI * 2); pg.fill();
+  }
+  // Подсказка под графиком: что именно сейчас менялось
+  function note(changed) {
+    const n = $("plotNote");
+    const txt = {
+      T: "Меняется только T, объём постоянный — изохора. Посмотри в осях p(T): прямая через начало координат.",
+      V: "Меняется только V, температура постоянная — изотерма. В осях p(V) получается гипербола.",
+      N: "Изменилось число молекул — масса газа другая, это уже не изопроцесс. Нажми «Очистить», чтобы начать заново."
+    }[changed];
+    if (txt && n.textContent !== txt) { n.textContent = txt; n.classList.remove("flash"); void n.offsetWidth; n.classList.add("flash"); }
+  }
+  function record(changed) {
+    trail.push(cur());
+    if (trail.length > 400) trail.shift();
+    note(changed);
+    drawPlot();
+  }
+  $("plotAxes").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    plotAx = b.dataset.ax;
+    $("plotAxes").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    drawPlot();
+  });
+  $("plotClear").onclick = () => { trail = []; drawPlot(); };
+
+  // ---------- Ползунки ----------
+  $("sT").addEventListener("input", e => {
     const nt = +e.target.value, k = Math.sqrt(nt / sim.T);
     mols.forEach(m => { m.vx *= k; m.vy *= k; });   // скорость ~ √T
     const up = nt > sim.T; sim.T = nt;
-    document.getElementById("oT").textContent = nt + " К";
+    $("oT").textContent = nt + " К";
     say(up ? "Теплее: молекулы быстрее и бьют сильнее и чаще. При постоянном объёме p ~ T — это изохора (задача 7)."
            : "Холоднее: молекулы замедлились, давление падает. Скорость молекул пропорциональна √T.");
-    showGauges();
+    showGauges(); record("T");
   });
-  document.getElementById("sV").addEventListener("input", e => {
+  $("sV").addEventListener("input", e => {
     const nv = +e.target.value, down = nv < sim.V;
     sim.V = nv;
     const px = pistonX();
-    mols.forEach(m => { if (m.x > px - R) { m.x = px - R - Math.random() * px * 0.15; m.vx = -Math.abs(m.vx); } });
-    document.getElementById("oV").textContent = fmt(nv, 1) + " л";
+    mols.forEach(m => { if (m.x > px - RAD) { m.x = px - RAD - Math.random() * px * 0.15; m.vx = -Math.abs(m.vx); } });
+    $("oV").textContent = f1(nv, 1) + " л";
     say(down ? "Объём меньше: молекулам теснее, удары чаще, давление растёт. При постоянной T p·V = const — это изотерма (задача 8)."
              : "Объём больше: удары реже, давление падает. Чтобы давление не менялось, газ надо нагреть — это изобара (задача 9).");
-    showGauges();
+    showGauges(); record("V");
   });
-  document.getElementById("sN").addEventListener("input", e => {
+  $("sN").addEventListener("input", e => {
     const nn = +e.target.value, up = nn > sim.N;
     sim.N = nn; setN(nn);
-    document.getElementById("oN").textContent = nn;
+    $("oN").textContent = nn;
     say(up ? "Больше молекул — больше ударов о стенки. Давление растёт: p = nkT, где n — концентрация молекул."
            : "Меньше молекул — меньше ударов, давление падает.");
-    showGauges();
+    showGauges(); record("N");
   });
 
-  resize();
+  resize(); plotResize();
   setN(sim.N);
-  draw(); showGauges();
-  addEventListener("resize", () => { resize(); draw(); });
+  draw(); showGauges(); drawPlot();
+  addEventListener("resize", () => { resize(); plotResize(); draw(); drawPlot(); });
+  // Если вкладку показали снова — пересчитать размеры
+  $("tabs").addEventListener("click", () => setTimeout(() => { if (view === "tasks") { resize(); plotResize(); draw(); drawPlot(); } }, 0));
   // Анимация работает только когда симулятор виден на экране — бережём батарею
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(es => es.forEach(en => en.isIntersecting ? start() : stop())).observe(cv);
