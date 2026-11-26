@@ -110,6 +110,11 @@
   .flash { animation: tipflash .6s; }
   @keyframes tipflash { from { transform: scale(.98); opacity: .4; } to { transform: none; opacity: 1; } }
   /* Живой график */
+  .iso-btns { margin-top: 4px; }
+  .iso-btns { flex-wrap: nowrap; }
+  .iso-btns button { flex: 1 1 0; min-width: 0; padding: 8px 6px; line-height: 1.25; }
+  .iso-btns button small { display: block; font-size: .78rem; }
+  .iso-btns button:disabled { opacity: .5; cursor: default; }
   .plot-head { display: flex; justify-content: space-between; align-items: center; margin: 16px 0 8px; gap: 8px; }
   .plot-head h3 { margin: 0; font-size: 1rem; font-weight: 800; }
   .seg { display: inline-flex; background: var(--field); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
@@ -308,6 +313,10 @@
         <input type="range" id="sV" min="1" max="3" step="0.1" value="2"></label>
       <label class="sl"><div class="sl-top"><span>Число молекул N</span><output id="oN">60</output></div>
         <input type="range" id="sN" min="10" max="150" step="5" value="60"></label>
+      <div class="btns iso-btns">
+        <button type="button" id="isoUp">Нагреть<small>при p = const</small></button>
+        <button type="button" id="isoDown">Охладить<small>при p = const</small></button>
+      </div>
       <p class="sim-tip" id="simTip">Попробуй нагреть газ: молекулы станут краснее и быстрее, а давление вырастет.</p>
 
       <div class="plot-head">
@@ -1263,6 +1272,27 @@ if (["#train", "#exam"].includes(location.hash)) setView(location.hash.slice(1))
     pg.textAlign = "right"; yt.forEach(v => pg.fillText(fmt(v), L - 5, Y(v) + 4));
     const xt = xk === "V" ? [1, 2, 3] : [500, 1000];
     pg.textAlign = "center"; xt.forEach(v => pg.fillText(String(v), X(v), B + 14));
+    // Пунктир: линия процесса через текущую точку (изотерма, изохора или изобара)
+    const c0 = cur();
+    pg.save(); pg.setLineDash([5, 5]); pg.strokeStyle = muted; pg.lineWidth = 1.5; pg.beginPath();
+    let label;
+    if (plotAx === "pV") {
+      // Изотерма: p·V = const — гипербола
+      const C = c0.p * c0.V;
+      for (let v = Math.max(0.15, C / range.p); v <= range.V; v += 0.05) {
+        const x = X(v), y = Y(C / v);
+        v === Math.max(0.15, C / range.p) ? pg.moveTo(x, y) : pg.lineTo(x, y);
+      }
+      label = `изотерма T = ${c0.T} К`;
+    } else {
+      // Изохора p(T) или изобара V(T): прямая через начало координат
+      const k = c0[yk] / c0[xk], xEnd = Math.min(range[xk], range[yk] / k);
+      pg.moveTo(X(0), Y(0)); pg.lineTo(X(xEnd), Y(k * xEnd));
+      label = plotAx === "pT" ? `изохора V = ${f1(c0.V, 1)} л` : `изобара p = ${Math.round(c0.p)} кПа`;
+    }
+    pg.stroke(); pg.restore();
+    pg.fillStyle = muted; pg.font = "600 11px Nunito, system-ui, sans-serif"; pg.textAlign = "right";
+    pg.fillText("пунктир: " + label, Rr + 4, Tt + 2);
     // След
     pg.strokeStyle = acc; pg.lineWidth = 2.5; pg.lineJoin = "round";
     pg.beginPath();
@@ -1282,7 +1312,8 @@ if (["#train", "#exam"].includes(location.hash)) setView(location.hash.slice(1))
     const txt = {
       T: "Меняется только T, объём постоянный — изохора. Посмотри в осях p(T): прямая через начало координат.",
       V: "Меняется только V, температура постоянная — изотерма. В осях p(V) получается гипербола.",
-      N: "Изменилось число молекул — масса газа другая, это уже не изопроцесс. Нажми «Очистить», чтобы начать заново."
+      N: "Изменилось число молекул — масса газа другая, это уже не изопроцесс. Нажми «Очистить», чтобы начать заново.",
+      P: "Давление не меняется — изобара. В осях V(T) точка идёт по прямой, которая продолжается в начало координат."
     }[changed];
     if (txt && n.textContent !== txt) { n.textContent = txt; n.classList.remove("flash"); void n.offsetWidth; n.classList.add("flash"); }
   }
@@ -1292,35 +1323,77 @@ if (["#train", "#exam"].includes(location.hash)) setView(location.hash.slice(1))
     note(changed);
     drawPlot();
   }
-  $("plotAxes").addEventListener("click", e => {
-    const b = e.target.closest("button"); if (!b) return;
-    plotAx = b.dataset.ax;
-    $("plotAxes").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  function setAx(ax) {
+    plotAx = ax;
+    $("plotAxes").querySelectorAll("button").forEach(x => x.classList.toggle("on", x.dataset.ax === ax));
     drawPlot();
-  });
+  }
+  $("plotAxes").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setAx(b.dataset.ax); });
   $("plotClear").onclick = () => { trail = []; drawPlot(); };
+
+  // ---------- Изменение температуры и объёма ----------
+  function applyT(nt) {
+    const k = Math.sqrt(nt / sim.T);
+    mols.forEach(m => { m.vx *= k; m.vy *= k; });   // скорость ~ √T
+    sim.T = nt;
+    $("sT").value = nt; $("oT").textContent = nt + " К";
+  }
+  function applyV(nv) {
+    sim.V = nv;
+    const px = pistonX();
+    mols.forEach(m => { if (m.x > px - RAD) { m.x = px - RAD - Math.random() * px * 0.15; m.vx = -Math.abs(m.vx); } });
+    $("sV").value = nv; $("oV").textContent = f1(nv, 1) + " л";
+  }
 
   // ---------- Ползунки ----------
   $("sT").addEventListener("input", e => {
-    const nt = +e.target.value, k = Math.sqrt(nt / sim.T);
-    mols.forEach(m => { m.vx *= k; m.vy *= k; });   // скорость ~ √T
-    const up = nt > sim.T; sim.T = nt;
-    $("oT").textContent = nt + " К";
+    stopIso();
+    const nt = +e.target.value, up = nt > sim.T;
+    applyT(nt);
     say(up ? "Теплее: молекулы быстрее и бьют сильнее и чаще. При постоянном объёме p ~ T — это изохора (задача 7)."
            : "Холоднее: молекулы замедлились, давление падает. Скорость молекул пропорциональна √T.");
     showGauges(); record("T");
   });
   $("sV").addEventListener("input", e => {
+    stopIso();
     const nv = +e.target.value, down = nv < sim.V;
-    sim.V = nv;
-    const px = pistonX();
-    mols.forEach(m => { if (m.x > px - RAD) { m.x = px - RAD - Math.random() * px * 0.15; m.vx = -Math.abs(m.vx); } });
-    $("oV").textContent = f1(nv, 1) + " л";
+    applyV(nv);
     say(down ? "Объём меньше: молекулам теснее, удары чаще, давление растёт. При постоянной T p·V = const — это изотерма (задача 8)."
              : "Объём больше: удары реже, давление падает. Чтобы давление не менялось, газ надо нагреть — это изобара (задача 9).");
     showGauges(); record("V");
   });
+
+  // ---------- Изобара: нагрев или охлаждение при постоянном давлении ----------
+  // Шаг по 10 К, а объём подстраивается так, чтобы V/T не менялось (поршень двигается сам)
+  let isoTimer = null;
+  function stopIso() {
+    if (!isoTimer) return;
+    clearInterval(isoTimer); isoTimer = null;
+    $("isoUp").disabled = $("isoDown").disabled = false;
+  }
+  function isobar(dir) {
+    stopIso();
+    const k = sim.V / sim.T;
+    if (plotAx !== "VT") setAx("VT");
+    say(dir > 0 ? "Нагреваем при постоянном давлении: газ расширяется и сам толкает поршень. V ~ T — это изобара (задача 9)."
+                : "Охлаждаем при постоянном давлении: газ сжимается, поршень едет влево. V ~ T — это изобара.");
+    $("isoUp").disabled = $("isoDown").disabled = true;
+    isoTimer = setInterval(() => {
+      const nt = sim.T + dir * 10, nv = k * nt;
+      if (nt < 100 || nt > 1000 || nv < 1 || nv > 3) {
+        stopIso();
+        say(dir > 0 ? "Поршень дошёл до края. Давление всё это время не менялось — посмотри на прибор «Давление»."
+                    : "Поршень дошёл до края. Давление не менялось, а объём уменьшился во столько же раз, во сколько температура.");
+        return;
+      }
+      applyT(nt); applyV(nv);
+      showGauges(); record("P");
+    }, 70);
+  }
+  $("isoUp").onclick = () => isobar(1);
+  $("isoDown").onclick = () => isobar(-1);
   $("sN").addEventListener("input", e => {
+    stopIso();
     const nn = +e.target.value, up = nn > sim.N;
     sim.N = nn; setN(nn);
     $("oN").textContent = nn;
