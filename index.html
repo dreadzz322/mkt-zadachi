@@ -1356,7 +1356,7 @@ function finishExam(reason) {
   const words = { 5: "Отлично!", 4: "Хорошо!", 3: "Удовлетворительно", 2: "Надо потренироваться" }[grade];
   $("examResult").innerHTML = `
     <section class="card result-head">
-      ${kicked ? `<p class="msg bad" style="display:block;margin:0 0 10px">Работа сдана автоматически: ${STRICT ? "в строгом режиме был уход со страницы" : "было два ухода со страницы"}. Этот результат не идёт в лучший.</p>` : ""}
+      ${kicked ? `<p class="msg bad" style="display:block;margin:0 0 10px">Работа сдана автоматически: было два ухода со страницы. Этот результат не идёт в лучший.</p>` : ""}
       <p class="muted" style="margin:0">${timeout ? "Время вышло. " : ""}Оценка</p>
       <div class="grade">${grade}</div>
       <h2>${words}</h2>
@@ -1379,7 +1379,7 @@ function finishExam(reason) {
   $("exTrain").onclick = () => setView("train");
   if (grade === 5) setTimeout(() => burst(innerWidth / 2, innerHeight / 3, 160), 300);
   if (timeout) toast("Время вышло, работа сдана");
-  if (kicked) { toast(STRICT ? "Работа сдана: уход со страницы" : "Работа сдана: второй уход со страницы"); vibrate([200, 100, 200]); }
+  if (kicked) { toast("Работа сдана: второй уход со страницы"); vibrate([200, 100, 200]); }
   showBest();
 }
 $("examGo").onclick = () => {
@@ -1425,7 +1425,7 @@ function onLeave() {
   ex.leaves++;
   ex.log.push({ at: now - ex.start, back: null });
   updateLight();
-  if (ex.leaves >= (STRICT ? 1 : 2)) { finishExam("leave"); return; }
+  if (ex.leaves >= 2) { finishExam("leave"); return; }
   $("warnModal").classList.add("show");
   vibrate([150, 80, 150]);
 }
@@ -1825,11 +1825,6 @@ $("subSeg").addEventListener("click", e => {
   setSub(b.dataset.s);
   try { history.replaceState(null, "", "#" + (b.dataset.s === "train" ? "train" : "tasks")); } catch (er) {}
 });
-// Строгий режим: учитель даёт ссылку с ?strict — любой уход сразу завершает работу
-const STRICT = /[?&]strict\b/i.test(location.search);
-if (STRICT) document.querySelectorAll(".exam-rules li").forEach(li => {
-  if (/предупреждение/.test(li.textContent)) li.innerHTML = "<b>Строгий режим.</b> Любой уход со страницы — в другое приложение, на вкладку или в плавающее окно — сразу завершает работу";
-});
 // Светофор: во время контрольной экран в рамке, сверху крупно имя. Зелёная — уходов не было,
 // красная — был уход. Учитель видит это издалека, а сбросить цвет до конца работы нельзя
 function updateLight() {
@@ -1837,7 +1832,7 @@ function updateLight() {
   if (!ex) { b.classList.remove("exam-on", "left"); return; }
   b.classList.add("exam-on");
   b.classList.toggle("left", ex.leaves > 0);
-  $("exWho").innerHTML = `<b>${esc(ex.name || "Без имени")}</b><span>${ex.leaves ? "уходов: " + ex.leaves : "честно"}${STRICT ? " · строго" : ""}</span>`;
+  $("exWho").innerHTML = `<b>${esc(ex.name || "Без имени")}</b><span>${ex.leaves ? "уходов: " + ex.leaves : "честно"}</span>`;
 }
 // Контрольная: одна задача на экран и сетка номеров (заполненные отмечены)
 let exPage = 0;
