@@ -237,6 +237,20 @@
   .pin-help ol { margin: 4px 0 0; padding-left: 20px; }
   .pin-help li { margin: 3px 0; }
   .pin-help p { margin: 6px 0 0; }
+  .name-row { display: block; margin: 14px 0 0; font-weight: 700; font-size: .92rem; }
+  .name-row input, .chk input {
+    display: block; width: 100%; margin-top: 6px; font: inherit; font-weight: 700; padding: 11px 12px; border-radius: 12px;
+    border: 2px solid var(--line); background: var(--field); color: var(--text); outline: none;
+  }
+  .name-row input:focus, .chk input:focus { border-color: var(--accent); }
+  .chk { display: grid; gap: 8px; margin-top: 8px; }
+  .chk input { margin: 0; }
+  .chk .msg { margin: 0; }
+  .code-box { margin: 14px auto 6px; padding: 12px; border-radius: 14px; background: var(--sol-bg); max-width: 340px; }
+  .code-box span { display: block; font-size: .85rem; color: var(--muted); }
+  .code-box b { display: block; font-size: 1.4rem; font-weight: 900; letter-spacing: 1px; font-family: ui-monospace, Consolas, monospace; margin: 4px 0; }
+  .code-box small { color: var(--muted); }
+  .leave-log { text-align: left; margin: 0 auto 6px; padding-left: 20px; font-size: .9rem; color: var(--muted); max-width: 320px; }
   .grade { font-size: 4.5rem; font-weight: 900; line-height: 1; margin: 6px 0; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .result-head { text-align: center; }
   .rv { border-left: 5px solid var(--tc); }
@@ -424,6 +438,7 @@
         <li>Без подсказок и решений, ответы проверяются в конце</li>
         <li>Оценка: 9–10 верных — «5», 7–8 — «4», 5–6 — «3», меньше — «2»</li>
         <li><b>Не уходи со страницы.</b> Если переключишься на другое приложение или вкладку, в первый раз будет предупреждение, во второй — работа сдастся автоматически</li>
+        <li><b>Впиши фамилию и имя.</b> В конце покажи учителю код результата — по нему учитель проверит оценку и уходы со страницы</li>
       </ul>
       <!-- Памятка: закрепление браузера, чтобы с контрольной нельзя было уйти без учителя -->
       <details class="pin-help">
@@ -444,8 +459,21 @@
         </ol>
         <p>Названия пунктов немного отличаются на разных телефонах. Если не нашлось, ищи в настройках по слову «закрепление» или «гид-доступ».</p>
       </details>
+      <label class="name-row">Фамилия и имя
+        <input id="exName" type="text" maxlength="40" autocomplete="name" placeholder="Например, Иванова Анна"></label>
       <button class="bigbtn" id="examGo" type="button">Начать контрольную</button>
       <p class="muted" id="examBest"></p>
+      <!-- Проверка кода результата: учитель вводит имя и код из 15 знаков -->
+      <details class="pin-help">
+        <summary>Для учителя: проверить результат</summary>
+        <p>В конце контрольной у ученика на экране код из 15 знаков. Введи фамилию и имя так же, как в работе, и этот код. Регистр букв и «ё/е» не важны.</p>
+        <div class="chk">
+          <input id="chkName" type="text" maxlength="40" placeholder="Фамилия и имя ученика">
+          <input id="chkCode" type="text" maxlength="20" autocomplete="off" placeholder="Код, например 7KQ2M-XA4PZ-9HT3B">
+          <button type="button" class="bigbtn" id="chkGo" style="margin:0">Проверить</button>
+          <div class="msg" id="chkOut"></div>
+        </div>
+      </details>
     </section>
     <div id="examRun" hidden>
       <div id="examList"></div>
@@ -1167,7 +1195,7 @@ function startExam() {
     if (inp) inp.addEventListener("input", examCount);
     return el;
   });
-  ex = { tasks, els, left: EX_SEC, start: Date.now(), leaves: 0, lastLeave: 0, dialog: false, away: false, maxArea: innerWidth * innerHeight };
+  ex = { tasks, els, left: EX_SEC, start: Date.now(), leaves: 0, lastLeave: 0, dialog: false, away: false, maxArea: innerWidth * innerHeight, name: examName, log: [] };
   lockTabs(true);
   enterFullscreen();
   $("examList").replaceChildren(...els);
@@ -1215,6 +1243,11 @@ function finishExam(reason) {
     </section>`;
   });
   const grade = gradeFor(correct);
+  // Журнал уходов: на какой минуте ушёл и сколько секунд не было на странице
+  const log = ex.log.map(e => ({ m: Math.floor(e.at / 60000), d: Math.round(((e.back ?? (Date.now() - ex.start)) - e.at) / 1000) }));
+  const code = makeCode(ex.name, { site: SITE_ID, correct, sec, day: todayNum(), kicked: kicked ? 1 : 0, n: log.length,
+    m1: log[0]?.m, d1: log[0]?.d, m2: log[1]?.m, d2: log[1]?.d });
+  const resName = ex.name;
   // Работа, сданная автоматически за уходы, в лучший результат не идёт
   const better = !kicked && (grade > exBest.grade || (grade === exBest.grade && (correct > exBest.correct || (correct === exBest.correct && sec < exBest.sec))));
   if (better) { Object.assign(exBest, { grade, correct, sec, date: new Date().toLocaleDateString("ru-RU") }); save(EX_KEY, exBest); }
@@ -1227,6 +1260,8 @@ function finishExam(reason) {
       <h2>${words}</h2>
       <p class="muted">Верно ${correct} из ${EX_N}, время ${mmss(sec)}${better ? ". Новый лучший результат!" : ""}</p>
       <p class="muted">Уходов со страницы: ${leaves}${leaves === 0 ? " — честная работа!" : ""}</p>
+      ${logHTML(log, kicked)}
+      <div class="code-box"><span>${esc(resName)} · код для учителя</span><b>${code}</b><small>Покажи этот экран учителю: по коду он проверит оценку и уходы со страницы.</small></div>
       <div class="btns" style="justify-content:center">
         <button type="button" class="main" id="exAgain">Ещё раз</button>
         <button type="button" id="exTrain">В тренажёр</button>
@@ -1245,7 +1280,14 @@ function finishExam(reason) {
   if (kicked) { toast("Работа сдана: второй уход со страницы"); vibrate([200, 100, 200]); }
   showBest();
 }
-$("examGo").onclick = startExam;
+$("examGo").onclick = () => {
+  // Без имени контрольную не начать: имя «подписывает» код результата
+  const inp = $("exName"), name = inp.value.replace(/\s+/g, " ").trim();
+  if (name.length < 3) { toast("Сначала впиши фамилию и имя"); shake(inp); inp.focus(); return; }
+  examName = name;
+  try { localStorage.setItem("exam-name", name); } catch (e) {}
+  startExam();
+};
 $("examSubmit").onclick = () => {
   const left = EX_N - examCount();
   if (left > 0) {
@@ -1279,6 +1321,7 @@ function onLeave() {
   ex.lastLeave = now;
   ex.away = true;
   ex.leaves++;
+  ex.log.push({ at: now - ex.start, back: null });
   if (ex.leaves >= 2) { finishExam("leave"); return; }
   $("warnModal").classList.add("show");
   vibrate([150, 80, 150]);
@@ -1291,7 +1334,7 @@ setInterval(() => {
   if (!ex) return;
   const here = document.hasFocus() && !document.hidden;
   if (!here) onLeave();
-  else ex.away = false;   // вернулся — следующий уход снова считается
+  else { if (ex.away) markBack(); ex.away = false; }   // вернулся — следующий уход снова считается
 }, 500);
 // Разделение экрана: окно резко уменьшается. Клавиатуру (фокус в поле ввода)
 // и поворот телефона (площадь почти та же) уходом не считаем
@@ -1300,12 +1343,85 @@ addEventListener("resize", () => {
   const area = innerWidth * innerHeight;
   if (area > ex.maxArea) { ex.maxArea = area; return; }   // например, включился полный экран
   const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || "");
-  if (!typing && area < ex.maxArea * 0.6) { ex.away = false; onLeave(); }
+  if (!typing && area < ex.maxArea * 0.6) { markBack(); ex.away = false; onLeave(); }
 });
 document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) onLeave(); });
 $("warnOk").onclick = () => { $("warnModal").classList.remove("show"); if (ex) enterFullscreen(); };
 // Перезагрузка или закрытие страницы во время контрольной — браузер переспросит
 addEventListener("beforeunload", e => { if (ex) { e.preventDefault(); e.returnValue = ""; } });
+
+// ================= Код проверки результата для учителя =================
+// Оценка, время, дата и журнал уходов упаковываются в 15 знаков. Последние 16 бит — «подпись»,
+// посчитанная от имени ученика и всех чисел: поменяешь хоть одну букву кода или имя — подпись не сойдётся.
+let examName = "";
+try { examName = localStorage.getItem("exam-name") || ""; $("exName").value = examName; } catch (e) {}
+const SITE_IDS = { mkt: 0, tok: 1, es: 2, opt: 3, kol: 4, yad: 5 };
+const SITE_NAMES = ["МКТ", "Постоянный ток", "Электростатика", "Оптика", "Колебания и волны", "Ядерная физика"];
+const SITE_ID = SITE_IDS[EX_KEY.split("-")[0]];
+const ABC = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";     // без 0, O, 1, I — их легко перепутать
+const DAY0 = Date.UTC(2026, 0, 1);
+// Поля кода и сколько бит на каждое: тренажёр, верных ответов, секунд, день, автосдача, уходов, два ухода (минута + секунды)
+const FIELDS = [["site", 3], ["correct", 4], ["sec", 11], ["day", 12], ["kicked", 1], ["n", 2], ["m1", 5], ["d1", 8], ["m2", 5], ["d2", 8]];
+const BODY = FIELDS.reduce((s, f) => s + f[1], 0);  // 59 бит данных + 16 бит подписи = 75 бит = 15 знаков
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const normName = s => s.toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
+function todayNum() { const d = new Date(); return Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - DAY0) / 864e5); }
+function sign(name, bits) {
+  let h = 0x811c9dc5;
+  for (const ch of "fizika-kontrol|" + normName(name) + "|" + bits) { h ^= ch.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+  return (h ^ (h >>> 16)) & 0xffff;
+}
+// Маска из подписи: биты данных «перемешиваются», и коды разных учеников не похожи друг на друга
+function mask(sig, bits) {
+  let x = (sig * 2654435761 >>> 0) || 1, out = "";
+  for (const b of bits) { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; x >>>= 0; out += (+b ^ (x & 1)); }
+  return out;
+}
+function makeCode(name, r) {
+  const body = FIELDS.map(([k, n]) => Math.max(0, Math.min(2 ** n - 1, Math.round(r[k] || 0))).toString(2).padStart(n, "0")).join("");
+  const sig = sign(name, body);
+  const bits = mask(sig, body) + sig.toString(2).padStart(16, "0");
+  let s = "";
+  for (let i = 0; i < bits.length; i += 5) s += ABC[parseInt(bits.slice(i, i + 5), 2)];
+  return s.match(/.{5}/g).join("-");
+}
+function readCode(name, code) {
+  const s = code.toUpperCase().replace(/[^0-9A-Z]/g, "");
+  if (s.length !== 15 || [...s].some(c => !ABC.includes(c))) return null;
+  const bits = [...s].map(c => ABC.indexOf(c).toString(2).padStart(5, "0")).join(""), sig = parseInt(bits.slice(BODY), 2);
+  const body = mask(sig, bits.slice(0, BODY));
+  if (sig !== sign(name, body)) return { ok: false };
+  const r = { ok: true };
+  let p = 0;
+  FIELDS.forEach(([k, n]) => { r[k] = parseInt(body.slice(p, p + n), 2); p += n; });
+  return r;
+}
+// Ученик вернулся на страницу — закрываем запись об уходе
+function markBack() {
+  const e = ex && ex.log[ex.log.length - 1];
+  if (e && e.back === null) e.back = Date.now() - ex.start;
+}
+const awayText = d => d >= 255 ? "больше 4 минут" : d + " с";
+function logHTML(log, kicked) {
+  if (!log.length) return "";
+  return `<ol class="leave-log">${log.map((e, i) => `<li>на ${e.m + 1}-й минуте: ${kicked && i === log.length - 1
+    ? "работа сдана автоматически" : "не было на странице " + awayText(e.d)}</li>`).join("")}</ol>`;
+}
+$("chkGo").onclick = () => {
+  const out = $("chkOut"), name = $("chkName").value, r = readCode(name, $("chkCode").value);
+  if (!normName(name)) { out.className = "msg bad"; out.textContent = "Впиши фамилию и имя ученика."; return; }
+  if (!r) { out.className = "msg bad"; out.textContent = "В коде должно быть 15 знаков: цифры 2–9 и латинские буквы."; return; }
+  if (!r.ok) { out.className = "msg bad"; out.textContent = "Код не сходится: результат изменён или имя введено не так, как в работе."; return; }
+  const date = new Date(DAY0 + r.day * 864e5).toLocaleDateString("ru-RU", { timeZone: "UTC" });
+  const leaves = [];
+  if (r.n > 0) leaves.push({ m: r.m1, d: r.d1 });
+  if (r.n > 1) leaves.push({ m: r.m2, d: r.d2 });
+  out.className = "msg ok";
+  out.innerHTML = `Код настоящий. <b>${esc(name.trim())}</b>: оценка «${gradeFor(r.correct)}», верно ${r.correct} из ${EX_N}, время ${mmss(r.sec)}, ${date}.`
+    + (SITE_NAMES[r.site] && r.site !== SITE_ID ? `<br>Тренажёр: ${SITE_NAMES[r.site]}.` : "")
+    + `<br>Уходов со страницы: ${r.n}${r.n ? "" : " — честная работа"}${r.kicked ? " (работа сдана автоматически)" : ""}.`
+    + logHTML(leaves, !!r.kicked);
+};
 showBest();
 
 // ================= Переключение вкладок =================
