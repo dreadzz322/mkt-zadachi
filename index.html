@@ -97,7 +97,16 @@
   .sticky-row b { color: var(--gold); font-family: var(--mono); }
   .exam-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; min-height: 32px; }
   .exam-row b { color: var(--accent); font-size: 17px; }
-  .exam-row.late b#exTime { color: var(--bad); }
+  #rowExam.late b#exTime { color: var(--bad); }
+  /* Светофор контрольной: рамка экрана и плашка с именем */
+  body.exam-on::after { content: ""; position: fixed; inset: 0; border: 5px solid var(--ok); pointer-events: none; z-index: 90; }
+  body.exam-on.left::after { border-color: var(--bad); }
+  .who { display: flex; justify-content: space-between; align-items: center; gap: var(--s2); padding: 6px var(--s3); border-radius: var(--r-btn);
+    background: var(--ok-bg); color: var(--ok); margin-bottom: 2px; }
+  .who b { font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .who span { font: 700 13px var(--mono); white-space: nowrap; }
+  body.left .who { background: var(--bad-bg); color: var(--bad); }
+  .pin-help code { font-family: var(--mono); color: var(--accent); }
   .linkbtn {
     background: none; border: 0; color: var(--accent); font: inherit; font-weight: 700; cursor: pointer;
     min-height: 44px; padding: 0 var(--s2); margin: -6px calc(-1 * var(--s2));
@@ -314,6 +323,7 @@
   .code-box span { display: block; font-size: 13px; color: var(--muted); }
   .code-box b { display: block; font-size: 22px; letter-spacing: 1px; margin: 4px 0; color: var(--accent); }
   .code-box small { color: var(--muted); font-size: 12px; }
+  .res-name { font-size: 20px; font-weight: 800; margin: var(--s3) 0 var(--s1); }
   .leave-log { text-align: left; margin: 0 auto var(--s2); padding-left: var(--s5); font-size: 13px; color: var(--muted); max-width: 320px; }
   .grade { font: 800 72px/1 var(--mono); margin: var(--s2) 0; color: var(--accent); }
   .result-head { text-align: center; }
@@ -375,7 +385,10 @@
       <div class="sticky-row"><span id="progressText">Решено 0 из 13</span><b id="stickyStars">★ 0</b><button id="reset" class="linkbtn" type="button">Сбросить</button></div>
     </div>
     <div id="rowTrain" class="sticky-row subrow" hidden><span>Верно с первого раза: <b id="trRow">0 из 0</b></span><button id="trReset" class="linkbtn" type="button">Обнулить</button></div>
-    <div id="rowExam" class="exam-row subrow" hidden><span>Осталось <b id="exTime">20:00</b></span><span>Отвечено <b id="exAns">0</b> из 10</span></div>
+    <div id="rowExam" class="subrow" hidden>
+      <div class="who" id="exWho"></div>
+      <div class="exam-row"><span>Осталось <b id="exTime">20:00</b></span><span>Отвечено <b id="exAns">0</b> из 10</span></div>
+    </div>
   </div>
 </header>
 
@@ -521,42 +534,12 @@
         <li>Без подсказок и решений, ответы проверяются в конце</li>
         <li>Оценка: 9–10 верных — «5», 7–8 — «4», 5–6 — «3», меньше — «2»</li>
         <li><b>Не уходи со страницы.</b> Если переключишься на другое приложение или вкладку, в первый раз будет предупреждение, во второй — работа сдастся автоматически</li>
-        <li><b>Впиши фамилию и имя.</b> В конце покажи учителю код результата — по нему учитель проверит оценку и уходы со страницы</li>
+        <li><b>Впиши фамилию и имя.</b> Они будут видны на экране всю контрольную и в результате</li>
       </ul>
-      <!-- Памятка: закрепление браузера, чтобы с контрольной нельзя было уйти без учителя -->
-      <details class="pin-help">
-        <summary>Строгая контрольная: как закрепить браузер</summary>
-        <p>Сайт не может запретить переключаться на другие приложения. А телефон может: если закрепить браузер, выйти из него получится только с кодом, который знает учитель.</p>
-        <h4>Android</h4>
-        <ol>
-          <li>Открой «Настройки» и найди в поиске «Закрепление» (на Samsung — «Закрепление окон», обычно в разделе «Безопасность»). Включи его и галочку «Запрашивать PIN-код перед откреплением».</li>
-          <li>Открой эту страницу в браузере.</li>
-          <li>Открой список недавних приложений (квадратная кнопка или свайп снизу с задержкой), нажми на значок браузера над его окном и выбери «Закрепить».</li>
-          <li>Открепить: зажать кнопки «Назад» и «Недавние» (или свайп вверх с задержкой) и ввести PIN-код. Код вводит учитель.</li>
-        </ol>
-        <h4>iPhone</h4>
-        <ol>
-          <li>«Настройки» → «Универсальный доступ» → «Гид-доступ»: включи и задай код в «Настройках код-пароля».</li>
-          <li>Открой эту страницу в Safari и трижды нажми боковую кнопку (на старых моделях — кнопку «Домой»), затем «Начать».</li>
-          <li>Выйти: снова трижды нажать ту же кнопку и ввести код. Код вводит учитель.</li>
-        </ol>
-        <p>Названия пунктов немного отличаются на разных телефонах. Если не нашлось, ищи в настройках по слову «закрепление» или «гид-доступ».</p>
-      </details>
       <label class="name-row">Фамилия и имя
         <input id="exName" type="text" maxlength="40" autocomplete="name" placeholder="Например, Иванова Анна"></label>
       <button class="bigbtn" id="examGo" type="button">Начать контрольную</button>
       <p class="muted" id="examBest"></p>
-      <!-- Проверка кода результата: учитель вводит имя и код из 15 знаков -->
-      <details class="pin-help">
-        <summary>Для учителя: проверить результат</summary>
-        <p>В конце контрольной у ученика на экране код из 15 знаков. Введи фамилию и имя так же, как в работе, и этот код. Регистр букв и «ё/е» не важны.</p>
-        <div class="chk">
-          <input id="chkName" type="text" maxlength="40" placeholder="Фамилия и имя ученика">
-          <input id="chkCode" type="text" maxlength="20" autocomplete="off" placeholder="Код, например 7KQ2M-XA4PZ-9HT3B">
-          <button type="button" class="bigbtn" id="chkGo" style="margin:0">Проверить</button>
-          <div class="msg" id="chkOut"></div>
-        </div>
-      </details>
     </section>
     <div id="examRun" hidden>
       <div class="exgrid" id="exGrid" aria-label="Номера задач"></div>
@@ -569,7 +552,6 @@
 
   <footer>
     Ответ засчитывается, если он отличается от точного не больше чем на 3%.
-    <!-- Ссылки на тренажёры по току и электростатике вернуть, когда их опубликуем -->
   </footer>
 </main>
 <nav class="bnav" id="tabs" aria-label="Разделы урока"><div class="bnav-in">
@@ -1317,6 +1299,7 @@ function startExam() {
   enterFullscreen();
   $("examList").replaceChildren(...els);
   exPage = 0;
+  updateLight();
   $("examStart").hidden = true; $("examResult").hidden = true; $("examRun").hidden = false;
   examCount();
   tickExam();
@@ -1337,6 +1320,7 @@ function finishExam(reason) {
   $("warnModal").classList.remove("show");
   lockTabs(false);
   exitFullscreen();
+  document.body.classList.remove("exam-on", "left");
   const sec = Math.min(EX_SEC, Math.round((Date.now() - ex.start) / 1000));
   let correct = 0;
   const review = ex.tasks.map((t, i) => {
@@ -1372,14 +1356,14 @@ function finishExam(reason) {
   const words = { 5: "Отлично!", 4: "Хорошо!", 3: "Удовлетворительно", 2: "Надо потренироваться" }[grade];
   $("examResult").innerHTML = `
     <section class="card result-head">
-      ${kicked ? `<p class="msg bad" style="display:block;margin:0 0 10px">Работа сдана автоматически: было два ухода со страницы. Этот результат не идёт в лучший.</p>` : ""}
+      ${kicked ? `<p class="msg bad" style="display:block;margin:0 0 10px">Работа сдана автоматически: ${STRICT ? "в строгом режиме был уход со страницы" : "было два ухода со страницы"}. Этот результат не идёт в лучший.</p>` : ""}
       <p class="muted" style="margin:0">${timeout ? "Время вышло. " : ""}Оценка</p>
       <div class="grade">${grade}</div>
       <h2>${words}</h2>
       <p class="muted">Верно ${correct} из ${EX_N}, время ${mmss(sec)}${better ? ". Новый лучший результат!" : ""}</p>
       <p class="muted">Уходов со страницы: ${leaves}${leaves === 0 ? " — честная работа!" : ""}</p>
       ${logHTML(log, kicked)}
-      <div class="code-box"><span>${esc(resName)} · код для учителя</span><b>${code}</b><small>Покажи этот экран учителю: по коду он проверит оценку и уходы со страницы.</small></div>
+      <p class="res-name">${esc(resName)}</p>
       <div class="btns" style="justify-content:center">
         <button type="button" class="main" id="exAgain">Ещё раз</button>
         <button type="button" id="exTrain">В тренажёр</button>
@@ -1395,7 +1379,7 @@ function finishExam(reason) {
   $("exTrain").onclick = () => setView("train");
   if (grade === 5) setTimeout(() => burst(innerWidth / 2, innerHeight / 3, 160), 300);
   if (timeout) toast("Время вышло, работа сдана");
-  if (kicked) { toast("Работа сдана: второй уход со страницы"); vibrate([200, 100, 200]); }
+  if (kicked) { toast(STRICT ? "Работа сдана: уход со страницы" : "Работа сдана: второй уход со страницы"); vibrate([200, 100, 200]); }
   showBest();
 }
 $("examGo").onclick = () => {
@@ -1440,7 +1424,8 @@ function onLeave() {
   ex.away = true;
   ex.leaves++;
   ex.log.push({ at: now - ex.start, back: null });
-  if (ex.leaves >= 2) { finishExam("leave"); return; }
+  updateLight();
+  if (ex.leaves >= (STRICT ? 1 : 2)) { finishExam("leave"); return; }
   $("warnModal").classList.add("show");
   vibrate([150, 80, 150]);
 }
@@ -1525,21 +1510,6 @@ function logHTML(log, kicked) {
   return `<ol class="leave-log">${log.map((e, i) => `<li>на ${e.m + 1}-й минуте: ${kicked && i === log.length - 1
     ? "работа сдана автоматически" : "не было на странице " + awayText(e.d)}</li>`).join("")}</ol>`;
 }
-$("chkGo").onclick = () => {
-  const out = $("chkOut"), name = $("chkName").value, r = readCode(name, $("chkCode").value);
-  if (!normName(name)) { out.className = "msg bad"; out.textContent = "Впиши фамилию и имя ученика."; return; }
-  if (!r) { out.className = "msg bad"; out.textContent = "В коде должно быть 15 знаков: цифры 2–9 и латинские буквы."; return; }
-  if (!r.ok) { out.className = "msg bad"; out.textContent = "Код не сходится: результат изменён или имя введено не так, как в работе."; return; }
-  const date = new Date(DAY0 + r.day * 864e5).toLocaleDateString("ru-RU", { timeZone: "UTC" });
-  const leaves = [];
-  if (r.n > 0) leaves.push({ m: r.m1, d: r.d1 });
-  if (r.n > 1) leaves.push({ m: r.m2, d: r.d2 });
-  out.className = "msg ok";
-  out.innerHTML = `Код настоящий. <b>${esc(name.trim())}</b>: оценка «${gradeFor(r.correct)}», верно ${r.correct} из ${EX_N}, время ${mmss(r.sec)}, ${date}.`
-    + (SITE_NAMES[r.site] && r.site !== SITE_ID ? `<br>Тренажёр: ${SITE_NAMES[r.site]}.` : "")
-    + `<br>Уходов со страницы: ${r.n}${r.n ? "" : " — честная работа"}${r.kicked ? " (работа сдана автоматически)" : ""}.`
-    + logHTML(leaves, !!r.kicked);
-};
 showBest();
 
 // ================= Переключение экранов: Опыт · Теория · Задачи · Контроль =================
@@ -1855,6 +1825,20 @@ $("subSeg").addEventListener("click", e => {
   setSub(b.dataset.s);
   try { history.replaceState(null, "", "#" + (b.dataset.s === "train" ? "train" : "tasks")); } catch (er) {}
 });
+// Строгий режим: учитель даёт ссылку с ?strict — любой уход сразу завершает работу
+const STRICT = /[?&]strict\b/i.test(location.search);
+if (STRICT) document.querySelectorAll(".exam-rules li").forEach(li => {
+  if (/предупреждение/.test(li.textContent)) li.innerHTML = "<b>Строгий режим.</b> Любой уход со страницы — в другое приложение, на вкладку или в плавающее окно — сразу завершает работу";
+});
+// Светофор: во время контрольной экран в рамке, сверху крупно имя. Зелёная — уходов не было,
+// красная — был уход. Учитель видит это издалека, а сбросить цвет до конца работы нельзя
+function updateLight() {
+  const b = document.body;
+  if (!ex) { b.classList.remove("exam-on", "left"); return; }
+  b.classList.add("exam-on");
+  b.classList.toggle("left", ex.leaves > 0);
+  $("exWho").innerHTML = `<b>${esc(ex.name || "Без имени")}</b><span>${ex.leaves ? "уходов: " + ex.leaves : "честно"}${STRICT ? " · строго" : ""}</span>`;
+}
 // Контрольная: одна задача на экран и сетка номеров (заполненные отмечены)
 let exPage = 0;
 function renderExamPage() {
