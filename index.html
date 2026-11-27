@@ -231,6 +231,12 @@
   .mini-stats span { font-size: .75rem; color: var(--muted); }
   .exam-rules { margin: 8px 0 0; padding-left: 20px; }
   .exam-rules li { margin: 2px 0; }
+  .pin-help { margin: 12px 0 0; background: var(--sol-bg); border-radius: 14px; padding: 10px 12px; font-size: .92rem; }
+  .pin-help summary { font-weight: 800; cursor: pointer; }
+  .pin-help h4 { margin: 10px 0 2px; font-size: .95rem; }
+  .pin-help ol { margin: 4px 0 0; padding-left: 20px; }
+  .pin-help li { margin: 3px 0; }
+  .pin-help p { margin: 6px 0 0; }
   .grade { font-size: 4.5rem; font-weight: 900; line-height: 1; margin: 6px 0; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .result-head { text-align: center; }
   .rv { border-left: 5px solid var(--tc); }
@@ -419,6 +425,25 @@
         <li>Оценка: 9–10 верных — «5», 7–8 — «4», 5–6 — «3», меньше — «2»</li>
         <li><b>Не уходи со страницы.</b> Если переключишься на другое приложение или вкладку, в первый раз будет предупреждение, во второй — работа сдастся автоматически</li>
       </ul>
+      <!-- Памятка: закрепление браузера, чтобы с контрольной нельзя было уйти без учителя -->
+      <details class="pin-help">
+        <summary>Строгая контрольная: как закрепить браузер</summary>
+        <p>Сайт не может запретить переключаться на другие приложения. А телефон может: если закрепить браузер, выйти из него получится только с кодом, который знает учитель.</p>
+        <h4>Android</h4>
+        <ol>
+          <li>Открой «Настройки» и найди в поиске «Закрепление» (на Samsung — «Закрепление окон», обычно в разделе «Безопасность»). Включи его и галочку «Запрашивать PIN-код перед откреплением».</li>
+          <li>Открой эту страницу в браузере.</li>
+          <li>Открой список недавних приложений (квадратная кнопка или свайп снизу с задержкой), нажми на значок браузера над его окном и выбери «Закрепить».</li>
+          <li>Открепить: зажать кнопки «Назад» и «Недавние» (или свайп вверх с задержкой) и ввести PIN-код. Код вводит учитель.</li>
+        </ol>
+        <h4>iPhone</h4>
+        <ol>
+          <li>«Настройки» → «Универсальный доступ» → «Гид-доступ»: включи и задай код в «Настройках код-пароля».</li>
+          <li>Открой эту страницу в Safari и трижды нажми боковую кнопку (на старых моделях — кнопку «Домой»), затем «Начать».</li>
+          <li>Выйти: снова трижды нажать ту же кнопку и ввести код. Код вводит учитель.</li>
+        </ol>
+        <p>Названия пунктов немного отличаются на разных телефонах. Если не нашлось, ищи в настройках по слову «закрепление» или «гид-доступ».</p>
+      </details>
       <button class="bigbtn" id="examGo" type="button">Начать контрольную</button>
       <p class="muted" id="examBest"></p>
     </section>
