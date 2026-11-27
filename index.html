@@ -70,6 +70,9 @@
   .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px; margin-bottom: 8px; }
   .tabs button { border: 0; background: none; color: var(--muted); font-weight: 800; font-size: .92rem; padding: 8px 4px; border-radius: 10px; cursor: pointer; transition: background .2s, color .2s; }
   .tabs button.on { background: linear-gradient(135deg, var(--accent), #2f8cff); color: #fff; }
+  .tabs button.locked { opacity: .35; cursor: not-allowed; }
+  .warn-box h2 { color: var(--bad); }
+  .warn-big { font-size: 3rem; font-weight: 900; color: var(--bad); line-height: 1; margin: 4px 0 8px; }
   .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
   .bar > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .5s; }
   .sticky-row { display: flex; justify-content: space-between; align-items: center; font-size: .88rem; color: var(--muted); margin-top: 4px; }
@@ -413,6 +416,7 @@
         <li>20 минут, таймер вверху экрана</li>
         <li>Без подсказок и решений, ответы проверяются в конце</li>
         <li>Оценка: 9–10 верных — «5», 7–8 — «4», 5–6 — «3», меньше — «2»</li>
+        <li><b>Не уходи со страницы.</b> Если переключишься на другое приложение или вкладку, в первый раз будет предупреждение, во второй — работа сдастся автоматически</li>
       </ul>
       <button class="bigbtn" id="examGo" type="button">Начать контрольную</button>
       <p class="muted" id="examBest"></p>
@@ -427,6 +431,14 @@
   <footer>Ответ засчитывается, если он отличается от точного не больше чем на 3%.</footer>
 </main>
 
+<div class="modal" id="warnModal">
+  <div class="modal-box warn-box">
+    <div class="warn-big">!</div>
+    <h2>Уход из контрольной</h2>
+    <p class="muted">Переключаться на другие приложения и вкладки во время контрольной нельзя. Это первое и последнее предупреждение: в следующий раз работа сдастся автоматически.</p>
+    <div class="btns"><button type="button" class="main" id="warnOk">Понятно, продолжить</button></div>
+  </div>
+</div>
 <div id="toasts"></div>
 <canvas id="confetti"></canvas>
 <div class="modal" id="modal">
@@ -1102,7 +1114,7 @@ const mmss = s => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s %
 function showBest() {
   $("examBest").textContent = exBest.grade
     ? `Лучший результат: «${exBest.grade}», верно ${exBest.correct} из ${EX_N} за ${mmss(exBest.sec)} (${exBest.date}).`
-    : "Ты ещё не писал контрольную. Удачи!";
+    : "Контрольная ещё не написана. Удачи!";
 }
 const gradeFor = c => c >= 9 ? 5 : c >= 7 ? 4 : c >= 5 ? 3 : 2;
 function examAnswered(i) {
@@ -1126,7 +1138,9 @@ function startExam() {
     if (inp) inp.addEventListener("input", examCount);
     return el;
   });
-  ex = { tasks, els, left: EX_SEC, start: Date.now() };
+  ex = { tasks, els, left: EX_SEC, start: Date.now(), leaves: 0, lastLeave: 0, dialog: false };
+  lockTabs(true);
+  enterFullscreen();
   $("examList").replaceChildren(...els);
   $("examStart").hidden = true; $("examResult").hidden = true; $("examRun").hidden = false;
   examCount();
@@ -1137,12 +1151,17 @@ function startExam() {
 }
 function tickExam() {
   ex.left = EX_SEC - Math.floor((Date.now() - ex.start) / 1000);
-  if (ex.left <= 0) { ex.left = 0; $("exTime").textContent = "00:00"; finishExam(true); return; }
+  if (ex.left <= 0) { ex.left = 0; $("exTime").textContent = "00:00"; finishExam("time"); return; }
   $("exTime").textContent = mmss(ex.left);
   $("rowExam").classList.toggle("late", ex.left <= 60);
 }
-function finishExam(timeout) {
+// reason: "time" — вышло время, "leave" — ушёл из контрольной второй раз, иначе — сдал сам
+function finishExam(reason) {
+  const timeout = reason === "time", kicked = reason === "leave", leaves = ex.leaves;
   clearInterval(ex.timer);
+  $("warnModal").classList.remove("show");
+  lockTabs(false);
+  exitFullscreen();
   const sec = Math.min(EX_SEC, Math.round((Date.now() - ex.start) / 1000));
   let correct = 0;
   const review = ex.tasks.map((t, i) => {
@@ -1167,15 +1186,18 @@ function finishExam(timeout) {
     </section>`;
   });
   const grade = gradeFor(correct);
-  const better = grade > exBest.grade || (grade === exBest.grade && (correct > exBest.correct || (correct === exBest.correct && sec < exBest.sec)));
+  // Работа, сданная автоматически за уходы, в лучший результат не идёт
+  const better = !kicked && (grade > exBest.grade || (grade === exBest.grade && (correct > exBest.correct || (correct === exBest.correct && sec < exBest.sec))));
   if (better) { Object.assign(exBest, { grade, correct, sec, date: new Date().toLocaleDateString("ru-RU") }); save(EX_KEY, exBest); }
   const words = { 5: "Отлично!", 4: "Хорошо!", 3: "Удовлетворительно", 2: "Надо потренироваться" }[grade];
   $("examResult").innerHTML = `
     <section class="card result-head">
+      ${kicked ? `<p class="msg bad" style="display:block;margin:0 0 10px">Работа сдана автоматически: было два ухода со страницы. Этот результат не идёт в лучший.</p>` : ""}
       <p class="muted" style="margin:0">${timeout ? "Время вышло. " : ""}Оценка</p>
       <div class="grade">${grade}</div>
       <h2>${words}</h2>
       <p class="muted">Верно ${correct} из ${EX_N}, время ${mmss(sec)}${better ? ". Новый лучший результат!" : ""}</p>
+      <p class="muted">Уходов со страницы: ${leaves}${leaves === 0 ? " — честная работа!" : ""}</p>
       <div class="btns" style="justify-content:center">
         <button type="button" class="main" id="exAgain">Ещё раз</button>
         <button type="button" id="exTrain">В тренажёр</button>
@@ -1191,14 +1213,51 @@ function finishExam(timeout) {
   $("exTrain").onclick = () => setView("train");
   if (grade === 5) setTimeout(() => burst(innerWidth / 2, innerHeight / 3, 160), 300);
   if (timeout) toast("Время вышло, работа сдана");
+  if (kicked) { toast("Работа сдана: второй уход со страницы"); vibrate([200, 100, 200]); }
   showBest();
 }
 $("examGo").onclick = startExam;
 $("examSubmit").onclick = () => {
   const left = EX_N - examCount();
-  if (left > 0 && !confirm(`Без ответа задач: ${left}. Всё равно сдать работу?`)) return;
-  finishExam(false);
+  if (left > 0) {
+    // Пока открыто окно подтверждения, потеря фокуса не считается уходом
+    ex.dialog = true;
+    const okGo = confirm(`Без ответа задач: ${left}. Всё равно сдать работу?`);
+    setTimeout(() => { if (ex) ex.dialog = false; }, 300);
+    if (!okGo) return;
+  }
+  finishExam();
 };
+
+// ================= Защита контрольной от ухода со страницы =================
+// Запретить переключение на другие приложения сайт не может — браузер этого не даёт.
+// Поэтому мы замечаем уход: первый раз — предупреждение, второй — работа сдаётся.
+function lockTabs(on) {
+  $("tabs").querySelectorAll("button").forEach(b => b.classList.toggle("locked", on && b.dataset.v !== "exam"));
+}
+function enterFullscreen() {
+  try { const el = document.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen).call(el).catch?.(() => {}); } catch (e) {}
+}
+function exitFullscreen() {
+  try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
+}
+function onLeave() {
+  if (!ex || ex.dialog) return;
+  const now = Date.now();
+  // Один уход часто вызывает сразу несколько событий (потеря фокуса, скрытие, выход из полного экрана)
+  if (now - ex.lastLeave < 1500) return;
+  ex.lastLeave = now;
+  ex.leaves++;
+  if (ex.leaves >= 2) { finishExam("leave"); return; }
+  $("warnModal").classList.add("show");
+  vibrate([150, 80, 150]);
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) onLeave(); });
+addEventListener("blur", onLeave);
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) onLeave(); });
+$("warnOk").onclick = () => { $("warnModal").classList.remove("show"); if (ex) enterFullscreen(); };
+// Перезагрузка или закрытие страницы во время контрольной — браузер переспросит
+addEventListener("beforeunload", e => { if (ex) { e.preventDefault(); e.returnValue = ""; } });
 showBest();
 
 // ================= Переключение вкладок =================
@@ -1213,6 +1272,8 @@ function scrollTop() {
   if (scrollY > top) scrollTo({ top, behavior: "auto" });
 }
 function setView(v) {
+  // Во время контрольной другие вкладки сайта закрыты
+  if (ex && v !== "exam") { toast("Во время контрольной вкладки закрыты. Сначала сдай работу"); shake($("tabs")); return; }
   view = v;
   ["tasks", "train", "exam"].forEach(k => { $("view-" + k).hidden = k !== v; });
   $("tabs").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
