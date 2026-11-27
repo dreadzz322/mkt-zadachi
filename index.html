@@ -1142,7 +1142,7 @@ function startExam() {
     if (inp) inp.addEventListener("input", examCount);
     return el;
   });
-  ex = { tasks, els, left: EX_SEC, start: Date.now(), leaves: 0, lastLeave: 0, dialog: false };
+  ex = { tasks, els, left: EX_SEC, start: Date.now(), leaves: 0, lastLeave: 0, dialog: false, away: false, maxArea: innerWidth * innerHeight };
   lockTabs(true);
   enterFullscreen();
   $("examList").replaceChildren(...els);
@@ -1246,11 +1246,13 @@ function exitFullscreen() {
   try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
 }
 function onLeave() {
-  if (!ex || ex.dialog) return;
+  // away — студент уже «не здесь»: пока он не вернётся, новые уходы не считаем
+  if (!ex || ex.dialog || ex.away) return;
   const now = Date.now();
   // Один уход часто вызывает сразу несколько событий (потеря фокуса, скрытие, выход из полного экрана)
   if (now - ex.lastLeave < 1500) return;
   ex.lastLeave = now;
+  ex.away = true;
   ex.leaves++;
   if (ex.leaves >= 2) { finishExam("leave"); return; }
   $("warnModal").classList.add("show");
@@ -1258,6 +1260,23 @@ function onLeave() {
 }
 document.addEventListener("visibilitychange", () => { if (document.hidden) onLeave(); });
 addEventListener("blur", onLeave);
+// Плавающее окно или разделённый экран поверх: страница остаётся видна, и браузер
+// часто не присылает событий. Поэтому каждые полсекунды сами спрашиваем, у нас ли фокус
+setInterval(() => {
+  if (!ex) return;
+  const here = document.hasFocus() && !document.hidden;
+  if (!here) onLeave();
+  else ex.away = false;   // вернулся — следующий уход снова считается
+}, 500);
+// Разделение экрана: окно резко уменьшается. Клавиатуру (фокус в поле ввода)
+// и поворот телефона (площадь почти та же) уходом не считаем
+addEventListener("resize", () => {
+  if (!ex) return;
+  const area = innerWidth * innerHeight;
+  if (area > ex.maxArea) { ex.maxArea = area; return; }   // например, включился полный экран
+  const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || "");
+  if (!typing && area < ex.maxArea * 0.6) { ex.away = false; onLeave(); }
+});
 document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) onLeave(); });
 $("warnOk").onclick = () => { $("warnModal").classList.remove("show"); if (ex) enterFullscreen(); };
 // Перезагрузка или закрытие страницы во время контрольной — браузер переспросит
