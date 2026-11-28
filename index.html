@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   /* ----- Цвета урока «МКТ» ----- */
-  :root { --accent-d: #5EEAD4; --accent-l: #0D9488; --c-base: #a78bfa; --c-laws: #fb923c; --c-graph: #2dd4bf; --c-work: #f472b6; }
+  :root { --accent-d: #5EEAD4; --accent-l: #0F766E; --c-base: #a78bfa; --c-laws: #fb923c; --c-graph: #2dd4bf; --c-work: #f472b6; }
   :root[data-theme="light"] { --c-base: #8b5cf6; --c-laws: #f97316; --c-graph: #0ea5a0; --c-work: #db2777; }
   @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --c-base: #8b5cf6; --c-laws: #f97316; --c-graph: #0ea5a0; --c-work: #db2777; } }
   .task.base { --tc: var(--c-base); } .task.laws { --tc: var(--c-laws); } .task.graph { --tc: var(--c-graph); } .task.work { --tc: var(--c-work); }
@@ -30,7 +30,7 @@
     --grid: rgba(156, 170, 189, .09);
     --accent: var(--accent-d); --on-accent: #0D1420;
     --ok: #4ADE80; --ok-bg: rgba(74, 222, 128, .12); --bad: #F87171; --bad-bg: rgba(248, 113, 113, .12);
-    --gold: #FBBF24; --hint-bg: rgba(251, 191, 36, .09);
+    --gold: #FBBF24; --hint-bg: rgba(251, 191, 36, .09); --field-line: #5B6E86;
     --sol-bg: color-mix(in srgb, var(--accent) 9%, var(--card));
     --r-card: 16px; --r-btn: 12px;
     --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px;
@@ -45,8 +45,8 @@
     --text: #0F1726; --muted: #5A6B80; --field: #F7F9FC;
     --grid: rgba(15, 23, 38, .06);
     --accent: var(--accent-l); --on-accent: #FFFFFF;
-    --ok: #15803D; --ok-bg: #E7F6EC; --bad: #DC2626; --bad-bg: #FDECEC;
-    --gold: #D97706; --hint-bg: #FFF7E0;
+    --ok: #166534; --ok-bg: #E7F6EC; --bad: #B91C1C; --bad-bg: #FDECEC;
+    --gold: #B45309; --hint-bg: #FFF7E0; --field-line: #7D8DA3;
   }
   @media (prefers-color-scheme: light) {
     :root:not([data-theme="dark"]) {
@@ -55,8 +55,8 @@
       --text: #0F1726; --muted: #5A6B80; --field: #F7F9FC;
       --grid: rgba(15, 23, 38, .06);
       --accent: var(--accent-l); --on-accent: #FFFFFF;
-      --ok: #15803D; --ok-bg: #E7F6EC; --bad: #DC2626; --bad-bg: #FDECEC;
-      --gold: #D97706; --hint-bg: #FFF7E0;
+      --ok: #166534; --ok-bg: #E7F6EC; --bad: #B91C1C; --bad-bg: #FDECEC;
+      --gold: #B45309; --hint-bg: #FFF7E0; --field-line: #7D8DA3;
     }
   }
 
@@ -138,8 +138,10 @@
     display: block; width: 100%; height: 240px; border-radius: var(--r-btn); border: 1px solid var(--line);
     background-color: var(--field);
     background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-    background-size: 24px 24px; background-position: -1px -1px; touch-action: none;
+    background-size: 24px 24px; background-position: -1px -1px;
   }
+  /* Запрет прокрутки пальцем — только там, где по рисунку что-то перетаскивают (заряды в электростатике) */
+  #esCanvas { touch-action: none; }
   #plotCanvas { height: 200px; }
   .legend { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin: var(--s2) 0 0; }
   .legend i { display: inline-block; width: 64px; height: 6px; border-radius: 3px; margin: 0 6px; vertical-align: middle; background: linear-gradient(90deg, #38bdf8, #a3e635, #f97316, #ef4444); }
@@ -366,6 +368,60 @@
   footer { color: var(--muted); font-size: 12px; text-align: center; margin: var(--s6) 0 var(--s2); }
   footer a { color: var(--accent); font-weight: 700; text-decoration: none; }
 
+  /* ===================== Исправления по разбору интерфейса ===================== */
+  /* Поля ввода видны чётко (контраст рамки ≥ 3:1) */
+  .row input, .name-row input, .chk input { border-color: var(--field-line); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .row input:focus-visible, .name-row input:focus-visible { outline: none; }
+  /* Кнопки «−» и «·10^» под полем ответа */
+  .keys { display: flex; gap: var(--s2); margin: var(--s2) 0 0; }
+  .keys button { min-width: 64px; min-height: 44px; border-radius: var(--r-btn); border: 1px solid var(--line); background: var(--surface);
+    color: var(--text); font: 700 16px var(--mono); cursor: pointer; }
+  .fmt { font-size: 13px; }
+  .task .btns button { padding: 0 var(--s3); }
+  .btns small { font-size: 12px; }
+  /* Касания не меньше 44 px */
+  .chip, .seg button, .plot-head .seg button, .rv details summary { min-height: 44px; }
+  .pager-hint { text-align: center; font-size: 12px; color: var(--muted); margin: var(--s2) 0 0; }
+  .reset-row { text-align: center; margin: var(--s4) 0 0; }
+  /* Звёзды, которые ещё можно получить, заметнее «пустых» */
+  .stars .pot { color: color-mix(in srgb, var(--gold) 75%, var(--line)); }
+  /* Метки тем в светлой теме — темнее, чтобы читались */
+  :root[data-theme="light"] .tag { color: color-mix(in srgb, var(--tc, var(--accent)) 62%, #000); }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .tag { color: color-mix(in srgb, var(--tc, var(--accent)) 62%, #000); } }
+  /* Сетка контрольной: отвеченные хорошо отличаются от пустых */
+  .exgrid button.done { background: color-mix(in srgb, var(--accent) 20%, var(--card)); color: var(--text); }
+  /* Активная вкладка — не только цветом, но и полоской */
+  .bnav button { position: relative; }
+  .bnav button.on::before { content: ""; position: absolute; top: 0; left: 50%; width: 32px; height: 3px; margin-left: -16px; border-radius: 0 0 3px 3px; background: var(--accent); }
+  /* Светофор различим и без цветового зрения: после ухода рамка толще и пунктирная, плашка залита */
+  body.exam-on::after { border-color: #22C55E; }
+  body.exam-on.left::after { border: 10px dashed #DC2626; }
+  body.left .who { background: #DC2626; color: #FFFFFF; }
+  /* Во время контрольной: не тянется «обновить», шапка компактнее (лого и тема скрыты) */
+  body.exam-on { overscroll-behavior-y: contain; }
+  body.exam-on .appbar-top { display: none; }
+  /* Шпаргалка: каждая формула — отдельной строкой во всю ширину, без разрывов */
+  .sheet tr { display: block; padding: var(--s2) 0; border-top: 1px solid var(--line); }
+  .sheet td { display: block; border: 0; padding: 0; }
+  .sheet td:first-child { font-size: 13px; color: var(--muted); }
+  .sheet td:nth-child(2) { font-size: 16px; white-space: nowrap; overflow-x: auto; }
+  /* Узкие экраны: подписи приборов мельче, чтобы не рвались */
+  @media (max-width: 340px) {
+    .g { padding: var(--s2) 6px; }
+    .g span { font-size: 11px; }
+    .g small { display: block; margin: 0; }
+  }
+  /* Альбомная ориентация: шапка не липнет, навигация ниже */
+  @media (max-height: 500px) {
+    .appbar { position: static; }
+    :root { --nav-h: 48px; }
+    .bnav button span { display: none; }
+  }
+  /* «Чёлка» iPhone в альбомной ориентации */
+  main { padding-left: max(var(--s4), env(safe-area-inset-left)); padding-right: max(var(--s4), env(safe-area-inset-right)); }
+  .appbar { padding-left: max(var(--s4), env(safe-area-inset-left)); padding-right: max(var(--s4), env(safe-area-inset-right)); }
+
   /* Если в телефоне отключены анимации — уважаем это */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -382,7 +438,7 @@
     </div>
     <div id="rowTasks" class="subrow" hidden>
       <div class="bar"><div id="barFill"></div></div>
-      <div class="sticky-row"><span id="progressText">Решено 0 из 13</span><b id="stickyStars">★ 0</b><button id="reset" class="linkbtn" type="button">Сбросить</button></div>
+      <div class="sticky-row"><span id="progressText">Решено 0 из 16</span><b id="stickyStars">★ 0</b></div>
     </div>
     <div id="rowTrain" class="sticky-row subrow" hidden><span>Верно с первого раза: <b id="trRow">0 из 0</b></span><button id="trReset" class="linkbtn" type="button">Обнулить</button></div>
     <div id="rowExam" class="subrow" hidden>
@@ -407,7 +463,7 @@
     <!-- Симулятор газа -->
     <section class="card sim">
       <h2>Лаборатория: газ в сосуде</h2>
-      <p class="muted">Двигай ползунки. Давление здесь честно считается по ударам молекул о стенки и поршень.</p>
+      <p class="muted">Двигай ползунки. Каждый шарик изображает огромное число молекул: давление растёт и падает вместе с силой и частотой их ударов о стенки и поршень.</p>
       <canvas id="simCanvas" aria-label="Анимация молекул газа в сосуде с поршнем"></canvas>
       <div class="legend"><span>медленные<i></i>быстрые</span><span>справа поршень</span></div>
       <div class="gauges">
@@ -462,13 +518,15 @@
       <table>
         <tr><td>Количество вещества</td><td>ν = m / M = N / Nₐ</td></tr>
         <tr><td>Масса одной молекулы</td><td>m₀ = M / Nₐ</td></tr>
-        <tr><td>Средняя кинетическая энергия</td><td>E = 3/2 · kT</td></tr>
-        <tr><td>Среднеквадратичная скорость</td><td>v = √(3RT / M)</td></tr>
-        <tr><td>Основное уравнение МКТ</td><td>p = 2/3 · nE = nkT</td></tr>
+        <tr><td>Концентрация молекул</td><td>n = N / V</td></tr>
+        <tr><td>Средняя кинетическая энергия поступательного движения молекулы</td><td>Ē = 3/2 · kT</td></tr>
+        <tr><td>Средняя квадратичная скорость</td><td>v = √(3RT / M)</td></tr>
+        <tr><td>Основное уравнение МКТ</td><td>p = 1/3 · m₀nv² = 2/3 · nĒ = nkT</td></tr>
         <tr><td>Менделеев–Клапейрон</td><td>pV = (m/M) · RT</td></tr>
-        <tr><td>Изохора (V = const)</td><td>p₁/T₁ = p₂/T₂</td></tr>
-        <tr><td>Изотерма (T = const)</td><td>p₁V₁ = p₂V₂</td></tr>
-        <tr><td>Изобара (p = const)</td><td>V₁/T₁ = V₂/T₂</td></tr>
+        <tr><td>Уравнение Клапейрона (m = const)</td><td>pV / T = const</td></tr>
+        <tr><td>Изохора, закон Шарля (V = const)</td><td>p₁/T₁ = p₂/T₂</td></tr>
+        <tr><td>Изотерма, закон Бойля–Мариотта (T = const)</td><td>p₁V₁ = p₂V₂</td></tr>
+        <tr><td>Изобара, закон Гей-Люссака (p = const)</td><td>V₁/T₁ = V₂/T₂</td></tr>
         <tr><td>Работа газа при p = const</td><td>A = p·ΔV = νRΔT</td></tr>
         <tr><td>Работа в любом процессе</td><td>A = площадь под p(V)</td></tr>
       </table>
@@ -500,6 +558,9 @@
       <div id="tasks"></div>
       <p class="muted" id="pgEmpty" hidden>В этой подборке задач нет — похоже, всё решено. Выбери «Все».</p>
       <div class="pager-nav"><button type="button" id="pgPrev">← Назад</button><button type="button" id="pgNext">Вперёд →</button></div>
+      <p class="pager-hint">Листать можно и свайпом по задаче</p>
+      <!-- «Сбросить» — внизу, а не в шапке: опасную кнопку не нажмёшь случайно -->
+      <p class="reset-row"><button id="reset" class="linkbtn" type="button">Сбросить прогресс</button></p>
     </div>
     <div id="trainWrap" hidden>
     <section class="card">
@@ -561,7 +622,14 @@
   <button type="button" data-v="exam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 13l2 2 4-4"/></svg><span>Контроль</span></button>
 </div></nav>
 
-<div class="modal" id="warnModal">
+<div class="modal" id="submitModal" role="dialog" aria-modal="true" aria-labelledby="subTitle">
+  <div class="modal-box">
+    <h2 id="subTitle">Сдать работу?</h2>
+    <p class="muted" id="subText"></p>
+    <div class="btns"><button type="button" id="subNo">Вернуться</button><button type="button" class="main" id="subYes">Сдать</button></div>
+  </div>
+</div>
+<div class="modal" id="warnModal" role="dialog" aria-modal="true">
   <div class="modal-box warn-box">
     <div class="warn-big">!</div>
     <h2>Уход из контрольной</h2>
@@ -571,7 +639,7 @@
 </div>
 <div id="toasts"></div>
 <canvas id="confetti"></canvas>
-<div class="modal" id="modal">
+<div class="modal" id="modal" role="dialog" aria-modal="true">
   <div class="modal-box">
     <h2>Все задачи решены!</h2>
     <p class="muted" id="mRank"></p>
@@ -614,9 +682,14 @@ const fmtT = t => (t < 0 ? "−" : "") + Math.abs(t);
 
 // Превращает ввод вроде «5,3·10^-26», «5.3*10-26», «5,3e-26» в число
 function parseAnswer(raw) {
-  let s = raw.trim().replace(/\s+/g, "").replace(/,/g, ".")
-    .replace(/[−–]/g, "-")
-    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, c => "0123456789-"["⁰¹²³⁴⁵⁶⁷⁸⁹⁻".indexOf(c)]);
+  // Понимаем ответы так, как их набирают на телефоне: русские «е» и «х», единицы после числа,
+  // «10^5» без множителя, «**» вместо «^», разные минусы и пробелы
+  let s = String(raw).trim().toLowerCase()
+    .replace(/е/g, "e").replace(/х/g, "x")
+    .replace(/[−–—‐‑]/g, "-").replace(/\*\*/g, "^").replace(/\s+/g, "");
+  s = s.replace(/[a-zа-яё°%/³²µ·.]+$/i, m => (m === "e" ? m : ""));   // «0,385кг», «12кПа», «2м/с»
+  s = s.replace(/,/g, ".").replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, c => "0123456789-"["⁰¹²³⁴⁵⁶⁷⁸⁹⁻".indexOf(c)]);
+  s = s.replace(/^10\^\(?([+-]?\d+)\)?$/, "1e$1");
   s = s.replace(/[·*×x]10\^?\(?([+-]?\d+)\)?$/i, "e$1");
   if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return NaN;
   return parseFloat(s);
@@ -729,7 +802,7 @@ const TASKS = [
   },
   {
     topic: "base", title: "Скорость молекул",
-    cond: "Найди среднеквадратичную скорость молекул азота N₂ при 0 °C.",
+    cond: "Найди среднюю квадратичную скорость молекул азота N₂ при 0 °C.",
     answer: 493, unit: "м/с",
     hint: "v = √(3RT / M). M(N₂) = 28 г/моль, переведи в кг/моль.",
     sol: ["T = 273 К, M = 0,028 кг/моль", "v = √(3 · 8,31 · 273 / 0,028) = √243 000 ≈ <b>493 м/с</b>", "Это около 1800 км/ч."]
@@ -812,7 +885,7 @@ const TASKS = [
     cond: "Газ перешёл из состояния 1 в состояние 2, как показано на графике. Найди работу газа.",
     svg: () => workSVG(2, 6, 100, 300),
     answer: 800, unit: "Дж",
-    hint: "Работа равна площади под графиком p(V). Здесь это трапеция: полусумма оснований на высоту.",
+    hint: "Работа равна площади под графиком p(V). Здесь это трапеция, лежащая на боку: её основания — p₁ и p₂ (вертикальные стороны), высота — V₂ − V₁. Площадь = (p₁ + p₂) / 2 · (V₂ − V₁).",
     sol: ["Площадь трапеции: A = (p₁ + p₂)/2 · (V₂ − V₁)", "A = (100 + 300)/2 · (6 − 2) = 200 кПа · 4 л = <b>800 Дж</b>", "кПа · л = 10³ Па · 10⁻³ м³ = 1 Дж, поэтому переводить не нужно."]
   },
   {
@@ -854,13 +927,13 @@ const GEN = [
   } },
   { topic: "base", title: "Энергия молекул", make() {
     const t = ri(-73, 527, 10), T = tK(t), E = 1.5 * KB * T;
-    return { cond: `Найди среднюю кинетическую энергию молекулы газа при ${fmtT(t)} °C.`, answer: E, unit: "Дж",
+    return { cond: `Найди среднюю кинетическую энергию поступательного движения молекулы газа при ${fmtT(t)} °C.`, answer: E, unit: "Дж",
       hint: "E = 3/2 · kT, температура в кельвинах.",
       sol: [`T = ${fmtT(t)} + 273 = ${T} К`, `E = 1,5 · 1,38·10⁻²³ · ${T} ≈ <b>${sci(E)} Дж</b>`] };
   } },
   { topic: "base", title: "Скорость молекул", make() {
     const g = pick(GASES), t = ri(-23, 327, 10), T = tK(t), M = g.M / 1000, v = Math.sqrt(3 * R * T / M);
-    return { cond: `Найди среднеквадратичную скорость молекул ${g.n} (${g.f}, M = ${g.M} г/моль) при ${fmtT(t)} °C.`, answer: v, unit: "м/с",
+    return { cond: `Найди среднюю квадратичную скорость молекул ${g.n} (${g.f}, M = ${g.M} г/моль) при ${fmtT(t)} °C.`, answer: v, unit: "м/с",
       hint: "v = √(3RT / M): T в кельвинах, M в кг/моль.",
       sol: [`T = ${T} К, M = ${fmt(M)} кг/моль`, `v = √(3 · 8,31 · ${T} / ${fmt(M)}) ≈ <b>${Math.round(v)} м/с</b>`] };
   } },
@@ -871,13 +944,16 @@ const GEN = [
       sol: [`T = ${T} К`, `p = nkT = ${fmt(a)}·10²⁵ · 1,38·10⁻²³ · ${T} ≈ ${sci(p)} Па ≈ <b>${fmt(p / 1000)} кПа</b>`] };
   } },
   { topic: "laws", title: "Менделеев–Клапейрон", make() {
-    const g = pick(GASES), V = pick([10, 20, 40, 50]), P = pick([0.5, 1, 1.5, 2, 2.5, 3]), t = ri(-13, 47, 10), T = tK(t);
+    // CO₂ при высоком давлении и холоде уже не идеальный газ (может стать жидкостью) — для него не больше 1 МПа
+    const g = pick(GASES), V = pick([10, 20, 40, 50]), P = pick(g.f === "CO₂" ? [0.5, 1] : [0.5, 1, 1.5, 2, 2.5, 3]), t = ri(-13, 47, 10), T = tK(t);
     const M = g.M / 1000, m = P * 1e6 * (V / 1000) * M / (R * T);
-    return { cond: `В баллоне объёмом ${V} л находится ${g.nom} (${g.f}, M = ${g.M} г/моль) под давлением ${fmt(P)} МПа при ${fmtT(t)} °C. Найди массу газа в килограммах.`,
-      answer: m, unit: "кг",
-      hint: "m = pVM / (RT). Всё в СИ: литры в м³, МПа в Па, г/моль в кг/моль, °C в К.",
+    // Лёгкие газы (водород, гелий) — ответ в граммах, чтобы не путаться в нулях
+    const light = g.M < 10, ans = light ? m * 1000 : m, u = light ? "г" : "кг";
+    return { cond: `В баллоне объёмом ${V} л находится ${g.nom} (${g.f}, M = ${g.M} г/моль) под давлением ${fmt(P)} МПа при ${fmtT(t)} °C. Найди массу газа в ${light ? "граммах" : "килограммах"}.`,
+      answer: ans, unit: u,
+      hint: "m = pVM / (RT). Всё в СИ: литры в м³, МПа в Па, г/моль в кг/моль, °C в К." + (light ? " Ответ в кг умножь на 1000." : ""),
       sol: [`V = ${fmt(V / 1000)} м³, p = ${fmt(P)}·10⁶ Па, T = ${T} К, M = ${fmt(M)} кг/моль`,
-        `m = pVM / (RT) = ${fmt(P)}·10⁶ · ${fmt(V / 1000)} · ${fmt(M)} / (8,31 · ${T}) ≈ <b>${fmt(m)} кг</b>`] };
+        `m = pVM / (RT) = ${fmt(P)}·10⁶ · ${fmt(V / 1000)} · ${fmt(M)} / (8,31 · ${T}) ≈ ${light ? fmt(m) + " кг = " : ""}<b>${fmt(ans)} ${u}</b>`] };
   } },
   { topic: "laws", title: "Изохорный процесс", make() {
     const t1 = ri(-23, 47, 10), t2 = t1 + ri(30, 200, 10), T1 = tK(t1), T2 = tK(t2), p1 = pick([100, 150, 200, 250, 300]), p2 = p1 * T2 / T1;
@@ -924,7 +1000,7 @@ const GEN = [
     const isoV = Math.random() < 0.5, TA = pick([200, 300, 400]), f = pick([1.5, 2]), TB = TA * f;
     const YA = isoV ? pick([100, 150, 200]) : pick([1, 2, 3, 4]), YB = YA * f;
     const q = isoV ? "давление" : "объём", u = isoV ? "кПа" : "л", sym = isoV ? "p" : "V";
-    return { cond: `На графике показана зависимость ${isoV ? "давления" : "объёма"} газа от температуры (${isoV ? "объём" : "давление"} постоянно). В точке A: T = ${TA} К, ${sym} = ${YA} ${u}. Найди ${q} в точке B.`,
+    return { cond: `На графике показана зависимость ${isoV ? "давления" : "объёма"} газа от температуры (${isoV ? "объём постоянен" : "давление постоянно"}). В точке A: T = ${TA} К, ${sym} = ${YA} ${u}. Найди ${q} в точке B.`,
       svg: () => pointSVG("T, К", `${sym}, ${u}`, TA, TB, YA), answer: YB, unit: u,
       hint: `Прямая через начало координат: ${sym} ~ T. Найди T в точке B по графику.`,
       sol: [`По графику в точке B: T = ${TB} К.`, `${sym}(B) = ${sym}(A) · T(B) / T(A) = ${YA} · ${TB} / ${TA} = <b>${fmt(YB)} ${u}</b>`] };
@@ -966,6 +1042,9 @@ function loadState() {
 }
 const state = loadState();
 const saveState = () => save(KEY, state);
+if (!state.stars || typeof state.stars !== "object") state.stars = {};
+Object.keys(state.stars).forEach(k => { if (!(+k >= 0 && +k < TASKS.length) || !(state.stars[k] >= 1 && state.stars[k] <= 3)) delete state.stars[k]; });
+state.streak = +state.streak || 0; state.best = +state.best || 0;
 
 const wrong = {}, usedHint = {}, usedSol = {};
 const MAX_STARS = TASKS.length * 3;
@@ -985,7 +1064,7 @@ function potential(i) {
 }
 
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-function vibrate(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+function vibrate(p) { if (reduced) return; try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
 const $ = id => document.getElementById(id);
 
 // ================= Шапка и прогресс =================
@@ -1053,8 +1132,9 @@ function taskBody(t) {
     ${t.svg ? `<div class="graph">${t.svg()}</div>` : ""}
     ${t.options
       ? `<div class="opts">${t.options.map((o, k) => `<button type="button" data-k="${k}">${o}</button>`).join("")}</div>`
-      : `<div class="row"><input type="text" inputmode="text" autocomplete="off" placeholder="Твой ответ"><span class="unit">${t.unit}</span></div>
-         <p class="fmt">Можно писать так: 5,3e-26 или 5,3·10^-26</p>`}`;
+      : `<div class="row"><input type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="40" placeholder="Твой ответ"><span class="unit">${t.unit}</span></div>
+         <div class="keys"><button type="button" data-ins="−" aria-label="Вставить минус">−</button><button type="button" data-ins="·10^" aria-label="Вставить умножить на десять в степени">·10^</button></div>
+         <p class="fmt">Например: 5,3e-26 или 5,3·10^-26</p>`}`;
 }
 const solHTML = t => t.sol.map(p => "<p>" + p + "</p>").join("");
 
@@ -1067,13 +1147,13 @@ function buildCard(t, num, cb, headRight = "") {
     <div class="task-top"><span class="tag">${TOPICS[t.topic]}</span>${headRight}</div>
     <h2>${num ? num + ". " : ""}${t.title}</h2>
     ${taskBody(t)}
+    <div class="msg" role="status" aria-live="polite"></div>
     <div class="btns">
       ${t.options ? "" : `<button type="button" class="main" data-a="check">Проверить</button>`}
       <button type="button" data-a="hint">Подсказка${cb.hintCost ? " <small>−1★</small>" : ""}</button>
-      <button type="button" data-a="sol">Решение</button>
+      <button type="button" data-a="sol">Решение${cb.hintCost ? " <small>→1★</small>" : ""}</button>
       ${cb.extraBtn || ""}
     </div>
-    <div class="msg"></div>
     <div class="hint">${t.hint}</div>
     <div class="sol">${solHTML(t)}</div>`;
   const input = el.querySelector("input"), msg = el.querySelector(".msg");
@@ -1094,6 +1174,7 @@ function buildCard(t, num, cb, headRight = "") {
       if (r.ok) good();
       else if (r.bad) { msg.className = "msg bad"; msg.textContent = r.text; }
       else bad(r.text);
+      try { msg.scrollIntoView({ block: "nearest" }); } catch (e) {}
     };
     el.querySelector('[data-a="check"]').onclick = check;
     input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
@@ -1191,6 +1272,8 @@ function renderPager() {
 }
 function goPage(d) {
   const n = pageIds().length;
+  // В «Нерешённых» с последней задачи — снова к первой нерешённой
+  if (filter === "todo" && d > 0 && page + d >= n && n > 1) { page = 0; renderPager(); scrollTop(); return; }
   if (page + d < 0 || page + d >= n) return;
   page += d; renderPager(); scrollTop();
 }
@@ -1277,11 +1360,14 @@ function examAnswered(i) {
   const el = ex.els[i], t = ex.tasks[i];
   return t.options ? el.querySelector(".opts .sel") !== null : el.querySelector("input").value.trim() !== "";
 }
-function examCount() { let n = 0; ex.tasks.forEach((t, i) => { if (examAnswered(i)) n++; }); $("exAns").textContent = n; renderExamPage(); return n; }
-function startExam() {
-  // 10 разных типов задач из 13, по порядку тем
-  const ids = shuffle(GEN.map((g, i) => i)).slice(0, EX_N).sort((a, b) => a - b);
-  const tasks = ids.map(genTask);
+function examCount() { let n = 0; ex.tasks.forEach((t, i) => { if (examAnswered(i)) n++; }); $("exAns").textContent = n; renderExamPage(); saveExam(); return n; }
+function startExam(restore) {
+  // restore — контрольная, сохранённая до перезагрузки страницы
+  const R = restore && restore.ids ? restore : null;
+  if (!R && !fullEnough()) { toast("Открой браузер на весь экран — без разделения экрана и плавающих окон"); return; }
+  const ids = R ? R.ids : shuffle(GEN.map((g, i) => i)).slice(0, EX_N).sort((a, b) => a - b);
+  const seeds = R ? R.seeds : ids.map(() => Math.floor(Math.random() * 4294967296));
+  const tasks = ids.map((g, k) => genSeeded(g, seeds[k]));
   const els = tasks.map((t, i) => {
     const el = document.createElement("section");
     el.className = "card task " + t.topic;
@@ -1294,12 +1380,20 @@ function startExam() {
     if (inp) inp.addEventListener("input", examCount);
     return el;
   });
-  ex = { tasks, els, left: EX_SEC, start: Date.now(), leaves: 0, lastLeave: 0, dialog: false, away: false, maxArea: innerWidth * innerHeight, name: examName, log: [] };
+  ex = { tasks, els, ids, seeds, left: EX_SEC, start: R ? R.start : Date.now(), leaves: R ? R.leaves : 0, lastLeave: 0, dialog: false, away: false,
+    maxArea: innerWidth * innerHeight, name: R ? R.name : examName, log: R ? R.log : [] };
   lockTabs(true);
   enterFullscreen();
   $("examList").replaceChildren(...els);
   exPage = 0;
   updateLight();
+  if (R) R.ans.forEach((a, i) => {          // вернуть ответы, введённые до перезагрузки
+    if (a === null || a === undefined || a === "") return;
+    if (tasks[i].options) els[i].querySelectorAll(".opts button").forEach(b => b.classList.toggle("sel", b.dataset.k === String(a)));
+    else els[i].querySelector("input").value = a;
+  });
+  keepAwake();
+  try { history.pushState({ exam: 1 }, ""); } catch (e) {}
   $("examStart").hidden = true; $("examResult").hidden = true; $("examRun").hidden = false;
   examCount();
   tickExam();
@@ -1318,6 +1412,9 @@ function finishExam(reason) {
   const timeout = reason === "time", kicked = reason === "leave", leaves = ex.leaves;
   clearInterval(ex.timer);
   $("warnModal").classList.remove("show");
+  $("submitModal").classList.remove("show");
+  clearSavedExam();
+  releaseAwake();
   lockTabs(false);
   exitFullscreen();
   document.body.classList.remove("exam-on", "left");
@@ -1331,7 +1428,7 @@ function finishExam(reason) {
       if (s) { yours = t.options[+s.dataset.k]; ok = +s.dataset.k === t.correct; }
     } else {
       const raw = el.querySelector("input").value.trim();
-      if (raw) { yours = raw + " " + t.unit; ok = checkNumber(t, raw).ok; }
+      if (raw) { yours = esc(raw) + " " + t.unit; ok = checkNumber(t, raw).ok; }
     }
     if (ok) correct++;
     const right = t.options ? t.options[t.correct] : fmt(t.answer) + " " + t.unit;
@@ -1347,8 +1444,6 @@ function finishExam(reason) {
   const grade = gradeFor(correct);
   // Журнал уходов: на какой минуте ушёл и сколько секунд не было на странице
   const log = ex.log.map(e => ({ m: Math.floor(e.at / 60000), d: Math.round(((e.back ?? (Date.now() - ex.start)) - e.at) / 1000) }));
-  const code = makeCode(ex.name, { site: SITE_ID, correct, sec, day: todayNum(), kicked: kicked ? 1 : 0, n: log.length,
-    m1: log[0]?.m, d1: log[0]?.d, m2: log[1]?.m, d2: log[1]?.d });
   const resName = ex.name;
   // Работа, сданная автоматически за уходы, в лучший результат не идёт
   const better = !kicked && (grade > exBest.grade || (grade === exBest.grade && (correct > exBest.correct || (correct === exBest.correct && sec < exBest.sec))));
@@ -1356,6 +1451,7 @@ function finishExam(reason) {
   const words = { 5: "Отлично!", 4: "Хорошо!", 3: "Удовлетворительно", 2: "Надо потренироваться" }[grade];
   $("examResult").innerHTML = `
     <section class="card result-head">
+      <p class="res-name">${esc(resName)}</p>
       ${kicked ? `<p class="msg bad" style="display:block;margin:0 0 10px">Работа сдана автоматически: было два ухода со страницы. Этот результат не идёт в лучший.</p>` : ""}
       <p class="muted" style="margin:0">${timeout ? "Время вышло. " : ""}Оценка</p>
       <div class="grade">${grade}</div>
@@ -1363,7 +1459,6 @@ function finishExam(reason) {
       <p class="muted">Верно ${correct} из ${EX_N}, время ${mmss(sec)}${better ? ". Новый лучший результат!" : ""}</p>
       <p class="muted">Уходов со страницы: ${leaves}${leaves === 0 ? " — честная работа!" : ""}</p>
       ${logHTML(log, kicked)}
-      <p class="res-name">${esc(resName)}</p>
       <div class="btns" style="justify-content:center">
         <button type="button" class="main" id="exAgain">Ещё раз</button>
         <button type="button" id="exTrain">В тренажёр</button>
@@ -1383,7 +1478,7 @@ function finishExam(reason) {
   showBest();
 }
 $("examGo").onclick = () => {
-  // Без имени контрольную не начать: имя «подписывает» код результата
+  // Без имени контрольную не начать: имя видно на экране всю контрольную и в результате
   const inp = $("exName"), name = inp.value.replace(/\s+/g, " ").trim();
   if (name.length < 3) { toast("Сначала впиши фамилию и имя"); shake(inp); inp.focus(); return; }
   examName = name;
@@ -1391,16 +1486,15 @@ $("examGo").onclick = () => {
   startExam();
 };
 $("examSubmit").onclick = () => {
+  // Своё окно вместо системного confirm(): пока открыто системное окно, страница «замирает» и не замечает уходы.
+  // Подтверждение спрашиваем всегда — даже если ответы есть везде
   const left = EX_N - examCount();
-  if (left > 0) {
-    // Пока открыто окно подтверждения, потеря фокуса не считается уходом
-    ex.dialog = true;
-    const okGo = confirm(`Без ответа задач: ${left}. Всё равно сдать работу?`);
-    setTimeout(() => { if (ex) ex.dialog = false; }, 300);
-    if (!okGo) return;
-  }
-  finishExam();
+  $("subText").textContent = (left > 0 ? `Без ответа задач: ${left}. ` : "") + "После сдачи изменить ответы будет нельзя.";
+  $("submitModal").classList.add("show");
+  $("subNo").focus();
 };
+$("subYes").onclick = () => { $("submitModal").classList.remove("show"); if (ex) finishExam(); };
+$("subNo").onclick = () => $("submitModal").classList.remove("show");
 
 // ================= Защита контрольной от ухода со страницы =================
 // Запретить переключение на другие приложения сайт не может — браузер этого не даёт.
@@ -1425,11 +1519,13 @@ function onLeave() {
   ex.leaves++;
   ex.log.push({ at: now - ex.start, back: null });
   updateLight();
+  saveExam();
   if (ex.leaves >= 2) { finishExam("leave"); return; }
   $("warnModal").classList.add("show");
+  $("warnOk").focus();
   vibrate([150, 80, 150]);
 }
-document.addEventListener("visibilitychange", () => { if (document.hidden) onLeave(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden) onLeave(); else if (ex) keepAwake(); });
 addEventListener("blur", onLeave);
 // Плавающее окно или разделённый экран поверх: страница остаётся видна, и браузер
 // часто не присылает событий. Поэтому каждые полсекунды сами спрашиваем, у нас ли фокус
@@ -1445,64 +1541,59 @@ addEventListener("resize", () => {
   if (!ex) return;
   const area = innerWidth * innerHeight;
   if (area > ex.maxArea) { ex.maxArea = area; return; }   // например, включился полный экран
-  const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || "");
-  if (!typing && area < ex.maxArea * 0.6) { markBack(); ex.away = false; onLeave(); }
+  // Проверяем ещё раз через 0,8 с: клавиатура и поворот дают короткие «промежуточные» размеры
+  clearTimeout(ex.rsz);
+  ex.rsz = setTimeout(() => {
+    if (!ex || ex.away) return;
+    if (window.visualViewport && visualViewport.scale > 1.05) return;             // увеличили пальцами
+    const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || "");
+    if (!typing && innerWidth * innerHeight < ex.maxArea * 0.55) onLeave();
+  }, 800);
 });
-document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) onLeave(); });
+// Выход из полного экрана сам по себе уходом не считается: настоящий уход и так ловят blur, скрытие страницы и проверка фокуса
 $("warnOk").onclick = () => { $("warnModal").classList.remove("show"); if (ex) enterFullscreen(); };
 // Перезагрузка или закрытие страницы во время контрольной — браузер переспросит
 addEventListener("beforeunload", e => { if (ex) { e.preventDefault(); e.returnValue = ""; } });
 
-// ================= Код проверки результата для учителя =================
-// Оценка, время, дата и журнал уходов упаковываются в 15 знаков. Последние 16 бит — «подпись»,
-// посчитанная от имени ученика и всех чисел: поменяешь хоть одну букву кода или имя — подпись не сойдётся.
+// ================= Имя ученика, сохранение контрольной, экран без сна =================
 let examName = "";
 try { examName = localStorage.getItem("exam-name") || ""; $("exName").value = examName; } catch (e) {}
-const SITE_IDS = { mkt: 0, tok: 1, es: 2, opt: 3, kol: 4, yad: 5 };
-const SITE_NAMES = ["МКТ", "Постоянный ток", "Электростатика", "Оптика", "Колебания и волны", "Ядерная физика"];
-const SITE_ID = SITE_IDS[EX_KEY.split("-")[0]];
-const ABC = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";     // без 0, O, 1, I — их легко перепутать
-const DAY0 = Date.UTC(2026, 0, 1);
-// Поля кода и сколько бит на каждое: тренажёр, верных ответов, секунд, день, автосдача, уходов, два ухода (минута + секунды)
-const FIELDS = [["site", 3], ["correct", 4], ["sec", 11], ["day", 12], ["kicked", 1], ["n", 2], ["m1", 5], ["d1", 8], ["m2", 5], ["d2", 8]];
-const BODY = FIELDS.reduce((s, f) => s + f[1], 0);  // 59 бит данных + 16 бит подписи = 75 бит = 15 знаков
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const normName = s => s.toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
-function todayNum() { const d = new Date(); return Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - DAY0) / 864e5); }
-function sign(name, bits) {
-  let h = 0x811c9dc5;
-  for (const ch of "fizika-kontrol|" + normName(name) + "|" + bits) { h ^= ch.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
-  return (h ^ (h >>> 16)) & 0xffff;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// Задачи контрольной генерируются «по зерну»: по тем же номерам и зёрнам после перезагрузки получатся те же задачи
+function genSeeded(i, seed) {
+  const orig = Math.random;
+  let x = (seed >>> 0) || 1;
+  Math.random = () => { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
+  try { return genTask(i); } finally { Math.random = orig; }
 }
-// Маска из подписи: биты данных «перемешиваются», и коды разных учеников не похожи друг на друга
-function mask(sig, bits) {
-  let x = (sig * 2654435761 >>> 0) || 1, out = "";
-  for (const b of bits) { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; x >>>= 0; out += (+b ^ (x & 1)); }
-  return out;
+// Идущая контрольная сохраняется: случайная перезагрузка не стирает работу (и не сбрасывает уходы)
+const EXS_KEY = EX_KEY + "-run";
+function saveExam() {
+  if (!ex) return;
+  try {
+    localStorage.setItem(EXS_KEY, JSON.stringify({ ids: ex.ids, seeds: ex.seeds, start: ex.start, leaves: ex.leaves, log: ex.log, name: ex.name,
+      ans: ex.els.map((el, i) => ex.tasks[i].options ? (el.querySelector(".opts .sel")?.dataset.k ?? null) : el.querySelector("input").value) }));
+  } catch (e) {}
 }
-function makeCode(name, r) {
-  const body = FIELDS.map(([k, n]) => Math.max(0, Math.min(2 ** n - 1, Math.round(r[k] || 0))).toString(2).padStart(n, "0")).join("");
-  const sig = sign(name, body);
-  const bits = mask(sig, body) + sig.toString(2).padStart(16, "0");
-  let s = "";
-  for (let i = 0; i < bits.length; i += 5) s += ABC[parseInt(bits.slice(i, i + 5), 2)];
-  return s.match(/.{5}/g).join("-");
+function clearSavedExam() { try { localStorage.removeItem(EXS_KEY); } catch (e) {} }
+// Экран не гаснет во время контрольной: иначе погасший экран засчитался бы как уход
+let wakeLock = null;
+async function keepAwake() {
+  try {
+    if (navigator.wakeLock && !wakeLock) {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+    }
+  } catch (e) {}
 }
-function readCode(name, code) {
-  const s = code.toUpperCase().replace(/[^0-9A-Z]/g, "");
-  if (s.length !== 15 || [...s].some(c => !ABC.includes(c))) return null;
-  const bits = [...s].map(c => ABC.indexOf(c).toString(2).padStart(5, "0")).join(""), sig = parseInt(bits.slice(BODY), 2);
-  const body = mask(sig, bits.slice(0, BODY));
-  if (sig !== sign(name, body)) return { ok: false };
-  const r = { ok: true };
-  let p = 0;
-  FIELDS.forEach(([k, n]) => { r[k] = parseInt(body.slice(p, p + n), 2); p += n; });
-  return r;
-}
+function releaseAwake() { try { if (wakeLock) wakeLock.release(); } catch (e) {} wakeLock = null; }
+// Начать можно только в окне на весь экран — не в половине экрана и не в плавающем окне
+function fullEnough() { return innerWidth * innerHeight >= 0.45 * screen.width * screen.height; }
 // Ученик вернулся на страницу — закрываем запись об уходе
 function markBack() {
   const e = ex && ex.log[ex.log.length - 1];
   if (e && e.back === null) e.back = Date.now() - ex.start;
+  saveExam();
 }
 const awayText = d => d >= 255 ? "больше 4 минут" : d + " с";
 function logHTML(log, kicked) {
@@ -1587,7 +1678,7 @@ if (["#train", "#exam", "#tasks", "#theory"].includes(location.hash)) setView(lo
       const v2 = mols.reduce((s, m) => s + m.vx * m.vx + m.vy * m.vy, 0);
       const expected = v2 / (2 * px * H);
       const target = expected > 0 ? pTheory() * measured / expected : 0;
-      pShown += (target - pShown) * 0.5;
+      pShown += (target - pShown) * 0.2;   // сильнее сглаживаем: удары отдельных шариков не должны «дёргать» прибор
       imp = 0; tAcc = 0;
       showGauges();
     }
@@ -1760,7 +1851,14 @@ if (["#train", "#exam", "#tasks", "#theory"].includes(location.hash)) setView(lo
   });
   $("sV").addEventListener("input", e => {
     stopIso();
-    const nv = +e.target.value, down = nv < sim.V;
+    const nv = +e.target.value, down = nv < sim.V, v0 = sim.V;
+    // Если ползунок «прыгнул» сразу далеко, добавляем промежуточные точки вдоль изотермы:
+    // иначе график провёл бы прямую хорду, а работа (площадь под p(V)) посчиталась бы неверно
+    const steps = Math.floor(Math.abs(nv - v0) / 0.05);
+    for (let k = 1; k < steps; k++) {
+      const v = v0 + (nv - v0) * k / steps;
+      trail.push({ p: pTheory() * sim.V / v, V: v, T: sim.T, N: sim.N });
+    }
     applyV(nv);
     say(down ? "Объём меньше: молекулам теснее, удары чаще, давление растёт. При постоянной T p·V = const — это изотерма (задача 8)."
              : "Объём больше: удары реже, давление падает. Чтобы давление не менялось, газ надо нагреть — это изобара (задача 9).");
@@ -1786,8 +1884,10 @@ if (["#train", "#exam", "#tasks", "#theory"].includes(location.hash)) setView(lo
       const nt = sim.T + dir * 10, nv = k * nt;
       if (nt < 100 || nt > 1000 || nv < 1 || nv > 3) {
         stopIso();
-        say(dir > 0 ? "Поршень дошёл до края. Давление всё это время не менялось — посмотри на прибор «Давление»."
-                    : "Поршень дошёл до края. Давление не менялось, а объём уменьшился во столько же раз, во сколько температура.");
+        // Причина остановки: дошли до предела температуры или поршень упёрся в край
+        const why = nt < 100 || nt > 1000 ? (dir > 0 ? "Достигли наибольшей температуры." : "Достигли наименьшей температуры.") : "Поршень дошёл до края.";
+        say(why + (dir > 0 ? " Давление всё это время держалось около одного значения — колебания прибора дают удары отдельных шариков."
+                           : " Давление не менялось, а объём уменьшился во столько же раз, во сколько температура."));
         return;
       }
       applyT(nt); applyV(nv);
@@ -1839,7 +1939,15 @@ let exPage = 0;
 function renderExamPage() {
   if (!ex) return;
   ex.els.forEach((el, i) => { el.hidden = i !== exPage; });
-  $("exGrid").innerHTML = ex.els.map((el, i) => `<button type="button" data-i="${i}" class="${i === exPage ? "on" : ""}${examAnswered(i) ? " done" : ""}" aria-label="Задача ${i + 1}">${i + 1}</button>`).join("");
+  // Кнопки сетки создаём один раз, дальше только меняем отметки (так не теряется фокус)
+  const grid = $("exGrid");
+  if (grid.children.length !== ex.els.length) grid.innerHTML = ex.els.map((el, i) => `<button type="button" data-i="${i}">${i + 1}</button>`).join("");
+  [...grid.children].forEach((b, i) => {
+    const done = examAnswered(i);
+    b.classList.toggle("on", i === exPage); b.classList.toggle("done", done);
+    b.setAttribute("aria-label", `Задача ${i + 1}${done ? ", отвечено" : ""}`);
+    if (i === exPage) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+  });
   $("exPrev").disabled = exPage === 0;
   $("exNext").disabled = exPage === ex.els.length - 1;
 }
@@ -1850,7 +1958,11 @@ $("exNext").onclick = () => goExam(exPage + 1);
 // Свайп по задаче: влево — следующая, вправо — предыдущая (одной рукой удобнее, чем тянуться к кнопкам)
 function swipe(el, next, prev) {
   let x0 = null, y0 = 0;
-  el.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  el.addEventListener("touchstart", e => {
+    const x = e.touches[0].clientX;
+    x0 = x < 30 || x > innerWidth - 30 ? null : x;   // у самого края — это системный жест «назад», не листаем
+    y0 = e.touches[0].clientY;
+  }, { passive: true });
   el.addEventListener("touchend", e => {
     if (x0 === null) return;
     const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
@@ -1871,6 +1983,8 @@ setInterval(() => { if (view === "lab") document.querySelectorAll("input[type=ra
   try { t = localStorage.getItem("pl-theme") || "auto"; } catch (e) {}
   const apply = () => {
     if (t === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+    // Цвет строки браузера — под цвет темы
+    try { document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.body).backgroundColor; } catch (e) {}
     dispatchEvent(new Event("resize"));
   };
   $("themeBtn").onclick = () => {
@@ -1878,7 +1992,35 @@ setInterval(() => { if (view === "lab") document.querySelectorAll("input[type=ra
     try { localStorage.setItem("pl-theme", t); } catch (e) {}
     apply(); toast("Тема: " + names[t]);
   };
-  try { matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => dispatchEvent(new Event("resize"))); } catch (e) {}
+  try { matchMedia("(prefers-color-scheme: light)").addEventListener("change", apply); } catch (e) {}
+  apply();
+})();
+// Кнопки «−» и «·10^» под полем ответа: вставляют знак туда, где стоит курсор
+document.addEventListener("click", e => {
+  const b = e.target.closest(".keys button"); if (!b) return;
+  const inp = b.closest(".card").querySelector(".row input"); if (!inp) return;
+  const a = inp.selectionStart ?? inp.value.length, z = inp.selectionEnd ?? inp.value.length;
+  inp.value = inp.value.slice(0, a) + b.dataset.ins + inp.value.slice(z);
+  inp.focus();
+  try { inp.setSelectionRange(a + b.dataset.ins.length, a + b.dataset.ins.length); } catch (er) {}
+  inp.dispatchEvent(new Event("input", { bubbles: true }));
+});
+// Жест «назад» во время контрольной не уводит со страницы
+addEventListener("popstate", () => {
+  if (!ex) return;
+  try { history.pushState({ exam: 1 }, ""); } catch (e) {}
+  toast("Во время контрольной назад нельзя — сначала сдай работу");
+});
+// Контрольная, прерванная перезагрузкой, продолжается; сама перезагрузка засчитывается как уход
+(function resumeExam() {
+  let R = null;
+  try { R = JSON.parse(localStorage.getItem(EXS_KEY) || "null"); } catch (e) {}
+  if (!R || !Array.isArray(R.ids) || !Array.isArray(R.seeds) || !(Date.now() - R.start < 2 * EX_SEC * 1000)) { clearSavedExam(); return; }
+  setView("exam");
+  startExam(R);
+  if (!ex) return;                      // время вышло, пока страница была закрыта, — работа уже сдана
+  toast("Контрольная продолжается. Перезагрузка засчитана как уход");
+  onLeave();
 })();
 </script>
 </body>
